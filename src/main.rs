@@ -6,10 +6,13 @@ use glutin::display::{Display, GlDisplay};
 use glutin::surface::{GlSurface, Surface, SurfaceAttributesBuilder, WindowSurface};
 use std::num::NonZeroU32;
 use glow::{Buffer, Context, HasContext, Program, VertexArray};
-use winit::event::{WindowEvent};
+use winit::event::{ElementState, KeyEvent, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, EventLoopBuilder};
+use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::raw_window_handle::{HasDisplayHandle, HasWindowHandle};
-use winit::window::{Window, WindowId};
+use winit::window::{CursorGrabMode, Window, WindowId};
+use std::collections::HashSet;
+use std::time::{Instant};
 
 struct Brickbyte{
     window: Option<Window>,
@@ -19,7 +22,17 @@ struct Brickbyte{
     gl: Option<Context>,
     program: Option<Program>,
     vao: Option<VertexArray>,
-    vbo: Option<Buffer>
+    vbo: Option<Buffer>,
+    camera_pos: Vec3,
+    camera_front: Vec3,
+    camera_up: Vec3,
+    camera_speed: f32,
+    keys_pressed: HashSet<KeyCode>,
+    last_update: Instant,
+    yaw: f32,
+    pitch: f32,
+    mouse_sens: f32,
+    last_mouse_pos: Option<(f64, f64)>
 }
 
 impl Brickbyte {
@@ -32,7 +45,17 @@ impl Brickbyte {
             gl: None,
             program: None,
             vao: None,
-            vbo: None
+            vbo: None,
+            camera_pos: Vec3::new(0.0, 0.0, 3.0),
+            camera_front: Vec3::new(0.0, 0.0, -1.0),
+            camera_up: Vec3::Y,
+            camera_speed: 2.5,
+            keys_pressed: HashSet::new(),
+            last_update: Instant::now(),
+            yaw: -90.0,
+            pitch: 0.0,
+            mouse_sens: 0.1,
+            last_mouse_pos: None
         }
     }
 
@@ -173,6 +196,31 @@ impl Brickbyte {
             self.vbo = Some(vbo);
         }
     }
+
+    fn update_camera(&mut self, delta_time: f32) {
+        let camera_speed = self.camera_speed * delta_time;
+        let camera_right = self.camera_front.cross(self.camera_up).normalize();
+
+        if self.keys_pressed.contains(&KeyCode::KeyW){
+            self.camera_pos += camera_speed * self.camera_front;
+        }
+        if self.keys_pressed.contains(&KeyCode::KeyS){
+            self.camera_pos -= camera_speed * self.camera_front;
+        }
+        if self.keys_pressed.contains(&KeyCode::KeyA){
+            self.camera_pos -= camera_speed * camera_right;
+        }
+        if self.keys_pressed.contains(&KeyCode::KeyD){
+            self.camera_pos += camera_speed * camera_right;
+        }
+    }
+
+    fn update_camera_direction(&mut self){
+        let yaw_rad = self.yaw.to_radians();
+        let pitch_rad = self.pitch.to_radians();
+
+        self.camera_front = Vec3::new(yaw_rad.cos() * pitch_rad.cos(), pitch_rad.sin(), yaw_rad.sin() * pitch_rad.cos()).normalize();
+    }
 }
 
 impl winit::application::ApplicationHandler for Brickbyte {
@@ -183,6 +231,8 @@ impl winit::application::ApplicationHandler for Brickbyte {
 
         if let Some(window) = self.window.take(){
             self.init_gl(&window);
+            window.set_cursor_grab(CursorGrabMode::Confined).unwrap();
+            window.set_cursor_visible(false);
             self.window = Some(window);
         }
 
@@ -206,6 +256,37 @@ impl winit::application::ApplicationHandler for Brickbyte {
                 }
             }
 
+            WindowEvent::KeyboardInput {event: KeyEvent {physical_key: PhysicalKey::Code(key_code), state, .. }, .. } => {
+                match state {
+                    ElementState::Pressed => {
+                        self.keys_pressed.insert(key_code);
+
+                        if key_code == KeyCode::Backspace{
+                            event_loop.exit();
+                        }
+                    }
+                    ElementState::Released => {
+                        self.keys_pressed.remove(&key_code);
+                    }
+                }
+            }
+
+            WindowEvent::CursorMoved { position, .. } => {
+                let mouse_pos = (position.x, position.y);
+                if let Some(last_pos) = self.last_mouse_pos {
+                    let delta_x = (mouse_pos.0 - last_pos.0) as f32 * self.mouse_sens;
+                    let delta_y = (last_pos.1 - mouse_pos.1) as f32 * self.mouse_sens;
+
+                    self.yaw += delta_x;
+                    self.pitch += delta_y;
+
+                    self.pitch = self.pitch.clamp(-89.0, 89.0);
+
+                    self.update_camera_direction();
+                }
+                self.last_mouse_pos = Some(mouse_pos);
+            }
+
             WindowEvent::RedrawRequested => {
                 let gl = self.gl.as_ref().unwrap();
                 let window = self.window.as_ref().unwrap();
@@ -213,7 +294,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
 
                 let aspect_ratio = window.inner_size().width as f32 / window.inner_size().height as f32;
                 let projection = Mat4::perspective_rh_gl(45.0f32.to_radians(), aspect_ratio, 0.1, 100.0);
-                let view = Mat4::look_at_rh(Vec3::new(0.0, 0.0, 3.0), Vec3::ZERO, Vec3::Y);
+                let view = Mat4::look_at_rh(self.camera_pos, self.camera_pos + self.camera_front, self.camera_up);
                 let model = Mat4::IDENTITY;
                 let mvp = projection * view * model;
 
@@ -238,6 +319,11 @@ impl winit::application::ApplicationHandler for Brickbyte {
     }
 
     fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {
+        let now = Instant::now();
+        let delta_time = now.duration_since(self.last_update).as_secs_f32();
+        self.last_update = now;
+        self.update_camera(delta_time);
+
         if let Some(window) = &self.window{
             window.request_redraw();
         }
