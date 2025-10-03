@@ -196,18 +196,20 @@ impl winit::application::ApplicationHandler for Brickbyte {
             }
 
             WindowEvent::Resized(size) => {
-                if let (Some(surface), Some(context)) = (self.gl_surface.as_ref(), self.gl_context.as_ref()){
+                if let (Some(surface), Some(context), Some(gl)) = (self.gl_surface.as_ref(), self.gl_context.as_ref(), self.gl.as_ref()) {
                     surface.resize(
                         context,
                         NonZeroU32::new(size.width.max(1)).unwrap(),
                         NonZeroU32::new(size.height.max(1)).unwrap()
-                    )
+                    );
+                    unsafe {gl.viewport(0, 0, size.width as i32, size.height as i32);}
                 }
             }
 
             WindowEvent::RedrawRequested => {
                 let gl = self.gl.as_ref().unwrap();
                 let window = self.window.as_ref().unwrap();
+                unsafe {gl.viewport(0, 0, window.inner_size().width as i32, window.inner_size().height as i32);}
 
                 let aspect_ratio = window.inner_size().width as f32 / window.inner_size().height as f32;
                 let projection = Mat4::perspective_rh_gl(45.0f32.to_radians(), aspect_ratio, 0.1, 100.0);
