@@ -1,18 +1,19 @@
-use std::ffi::CString;
 use glam::{Mat4, Vec3};
+use glow::{Buffer, Context, HasContext, Program, VertexArray};
 use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
 use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentGlContext, PossiblyCurrentContext};
 use glutin::display::{Display, GlDisplay};
 use glutin::surface::{GlSurface, Surface, SurfaceAttributesBuilder, WindowSurface};
+use std::collections::HashSet;
+use std::ffi::CString;
 use std::num::NonZeroU32;
-use glow::{Buffer, Context, HasContext, Program, VertexArray};
+use std::time::Instant;
+use winit::dpi::{PhysicalPosition, PhysicalSize};
 use winit::event::{ElementState, KeyEvent, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, EventLoopBuilder};
 use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use winit::window::{CursorGrabMode, Window, WindowId};
-use std::collections::HashSet;
-use std::time::{Instant};
 
 struct Brickbyte{
     window: Option<Window>,
@@ -32,7 +33,6 @@ struct Brickbyte{
     yaw: f32,
     pitch: f32,
     mouse_sens: f32,
-    last_mouse_pos: Option<(f64, f64)>
 }
 
 impl Brickbyte {
@@ -54,8 +54,7 @@ impl Brickbyte {
             last_update: Instant::now(),
             yaw: -90.0,
             pitch: 0.0,
-            mouse_sens: 0.1,
-            last_mouse_pos: None
+            mouse_sens: 0.1
         }
     }
 
@@ -213,6 +212,12 @@ impl Brickbyte {
         if self.keys_pressed.contains(&KeyCode::KeyD){
             self.camera_pos += camera_speed * camera_right;
         }
+        if self.keys_pressed.contains(&KeyCode::ShiftLeft){
+            self.camera_pos -= camera_speed * self.camera_up;
+        }
+        if self.keys_pressed.contains(&KeyCode::Space){
+            self.camera_pos += camera_speed * self.camera_up;
+        }
     }
 
     fn update_camera_direction(&mut self){
@@ -225,7 +230,7 @@ impl Brickbyte {
 
 impl winit::application::ApplicationHandler for Brickbyte {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        let window_attributes = Window::default_attributes().with_title("Brickbyte");
+        let window_attributes = Window::default_attributes().with_title("Brickbyte").with_inner_size(PhysicalSize::new(1200.0, 800.0));
         let window = event_loop.create_window(window_attributes).unwrap();
         self.window = Some(window);
 
@@ -233,6 +238,12 @@ impl winit::application::ApplicationHandler for Brickbyte {
             self.init_gl(&window);
             window.set_cursor_grab(CursorGrabMode::Confined).unwrap();
             window.set_cursor_visible(false);
+
+            let inner = window.inner_size();
+            let center_x = (inner.width / 2) as i32;
+            let center_y = (inner.height / 2) as i32;
+            window.set_cursor_position(PhysicalPosition::new(center_x, center_y)).unwrap();
+
             self.window = Some(window);
         }
 
@@ -272,19 +283,25 @@ impl winit::application::ApplicationHandler for Brickbyte {
             }
 
             WindowEvent::CursorMoved { position, .. } => {
-                let mouse_pos = (position.x, position.y);
-                if let Some(last_pos) = self.last_mouse_pos {
-                    let delta_x = (mouse_pos.0 - last_pos.0) as f32 * self.mouse_sens;
-                    let delta_y = (last_pos.1 - mouse_pos.1) as f32 * self.mouse_sens;
+                if let Some(window) = &self.window {
+                    let inner = window.inner_size();
+                    let center_x_f = inner.width as f64 / 2.0;
+                    let center_y_f = inner.height as f64 / 2.0;
+                    let center_x = (inner.width / 2) as i32;
+                    let center_y = (inner.height / 2) as i32;
+
+                    let delta_x = ((position.x - center_x_f) * self.mouse_sens as f64) as f32;
+                    let delta_y = ((center_y_f - position.y) * self.mouse_sens as f64) as f32;
 
                     self.yaw += delta_x;
                     self.pitch += delta_y;
 
                     self.pitch = self.pitch.clamp(-89.0, 89.0);
 
+                    window.set_cursor_position(PhysicalPosition::new(center_x, center_y)).unwrap();
+
                     self.update_camera_direction();
                 }
-                self.last_mouse_pos = Some(mouse_pos);
             }
 
             WindowEvent::RedrawRequested => {
