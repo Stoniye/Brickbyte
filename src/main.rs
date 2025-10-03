@@ -265,6 +265,12 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     );
                     unsafe {gl.viewport(0, 0, size.width as i32, size.height as i32);}
                 }
+
+                if let Some(window) = self.window.as_ref() {
+                    let center_x = (size.width / 2) as i32;
+                    let center_y = (size.height / 2) as i32;
+                    window.set_cursor_position(PhysicalPosition::new(center_x, center_y)).unwrap();
+                }
             }
 
             WindowEvent::KeyboardInput {event: KeyEvent {physical_key: PhysicalKey::Code(key_code), state, .. }, .. } => {
