@@ -8,8 +8,8 @@ use std::collections::HashSet;
 use std::ffi::CString;
 use std::num::NonZeroU32;
 use std::time::Instant;
-use winit::dpi::{PhysicalPosition, PhysicalSize};
-use winit::event::{ElementState, KeyEvent, WindowEvent};
+use winit::dpi::PhysicalSize;
+use winit::event::{DeviceEvent, ElementState, KeyEvent, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, EventLoopBuilder};
 use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::raw_window_handle::{HasDisplayHandle, HasWindowHandle};
@@ -239,15 +239,20 @@ impl winit::application::ApplicationHandler for Brickbyte {
             window.set_cursor_grab(CursorGrabMode::Confined).unwrap();
             window.set_cursor_visible(false);
 
-            let inner = window.inner_size();
-            let center_x = (inner.width / 2) as i32;
-            let center_y = (inner.height / 2) as i32;
-            window.set_cursor_position(PhysicalPosition::new(center_x, center_y)).unwrap();
-
             self.window = Some(window);
         }
 
         self.init_shader_and_buffers();
+    }
+
+    //TODO: Keyboard and mouse input can't be processed at the same time on Wayland (Window manager also?)
+    fn device_event(&mut self, _event_loop: &ActiveEventLoop, _device_id: winit::event::DeviceId, event: DeviceEvent) {
+        if let DeviceEvent::MouseMotion {delta} = event {
+            self.yaw += delta.0 as f32 * self.mouse_sens;
+            self.pitch -= delta.1 as f32 * self.mouse_sens;
+            self.pitch = self.pitch.clamp(-89.0, 89.0);
+            self.update_camera_direction();
+        }
     }
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _window_id: WindowId, event: WindowEvent) {
@@ -265,12 +270,6 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     );
                     unsafe {gl.viewport(0, 0, size.width as i32, size.height as i32);}
                 }
-
-                if let Some(window) = self.window.as_ref() {
-                    let center_x = (size.width / 2) as i32;
-                    let center_y = (size.height / 2) as i32;
-                    window.set_cursor_position(PhysicalPosition::new(center_x, center_y)).unwrap();
-                }
             }
 
             WindowEvent::KeyboardInput {event: KeyEvent {physical_key: PhysicalKey::Code(key_code), state, .. }, .. } => {
@@ -285,28 +284,6 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     ElementState::Released => {
                         self.keys_pressed.remove(&key_code);
                     }
-                }
-            }
-
-            WindowEvent::CursorMoved { position, .. } => {
-                if let Some(window) = &self.window {
-                    let inner = window.inner_size();
-                    let center_x_f = inner.width as f64 / 2.0;
-                    let center_y_f = inner.height as f64 / 2.0;
-                    let center_x = (inner.width / 2) as i32;
-                    let center_y = (inner.height / 2) as i32;
-
-                    let delta_x = ((position.x - center_x_f) * self.mouse_sens as f64) as f32;
-                    let delta_y = ((center_y_f - position.y) * self.mouse_sens as f64) as f32;
-
-                    self.yaw += delta_x;
-                    self.pitch += delta_y;
-
-                    self.pitch = self.pitch.clamp(-89.0, 89.0);
-
-                    window.set_cursor_position(PhysicalPosition::new(center_x, center_y)).unwrap();
-
-                    self.update_camera_direction();
                 }
             }
 
