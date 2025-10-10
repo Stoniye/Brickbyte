@@ -245,7 +245,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
         self.init_shader_and_buffers();
     }
 
-    //TODO: Keyboard and mouse input can't be processed at the same time on Wayland (Window manager also?)
+    //TODO: Keyboard and mouse input can't be processed at the same time on Wayland
     fn device_event(&mut self, _event_loop: &ActiveEventLoop, _device_id: winit::event::DeviceId, event: DeviceEvent) {
         if let DeviceEvent::MouseMotion {delta} = event {
             self.yaw += delta.0 as f32 * self.mouse_sens;
