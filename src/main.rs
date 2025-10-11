@@ -277,6 +277,22 @@ impl winit::application::ApplicationHandler for Brickbyte {
                 }
             }
 
+            WindowEvent::Focused(focused) => {
+                if let Some(window) = self.window.as_ref(){
+                    if focused{
+                        if let Err(_e) = window.set_cursor_grab(CursorGrabMode::Confined) {
+                            std::thread::sleep(std::time::Duration::from_millis(100));
+                            window.set_cursor_grab(CursorGrabMode::Confined).unwrap();
+                        }
+                        window.set_cursor_visible(false);
+                    }
+                    else if !focused{
+                        window.set_cursor_grab(CursorGrabMode::None).unwrap();
+                        window.set_cursor_visible(true);
+                    }
+                }
+            }
+
             WindowEvent::RedrawRequested => {
                 let gl = self.gl.as_ref().unwrap();
                 let window = self.window.as_ref().unwrap();
