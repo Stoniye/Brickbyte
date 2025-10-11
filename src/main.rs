@@ -245,16 +245,6 @@ impl winit::application::ApplicationHandler for Brickbyte {
         self.init_shader_and_buffers();
     }
 
-    //TODO: Keyboard and mouse input can't be processed at the same time on Wayland
-    fn device_event(&mut self, _event_loop: &ActiveEventLoop, _device_id: winit::event::DeviceId, event: DeviceEvent) {
-        if let DeviceEvent::MouseMotion {delta} = event {
-            self.yaw += delta.0 as f32 * self.mouse_sens;
-            self.pitch -= delta.1 as f32 * self.mouse_sens;
-            self.pitch = self.pitch.clamp(-89.0, 89.0);
-            self.update_camera_direction();
-        }
-    }
-
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _window_id: WindowId, event: WindowEvent) {
         match event {
             WindowEvent::CloseRequested => {
@@ -315,6 +305,16 @@ impl winit::application::ApplicationHandler for Brickbyte {
             }
 
             _ => {}
+        }
+    }
+
+    //TODO: Keyboard and mouse input can't be processed at the same time on Wayland
+    fn device_event(&mut self, _event_loop: &ActiveEventLoop, _device_id: winit::event::DeviceId, event: DeviceEvent) {
+        if let DeviceEvent::MouseMotion {delta} = event {
+            self.yaw += delta.0 as f32 * self.mouse_sens;
+            self.pitch -= delta.1 as f32 * self.mouse_sens;
+            self.pitch = self.pitch.clamp(-89.0, 89.0);
+            self.update_camera_direction();
         }
     }
 
