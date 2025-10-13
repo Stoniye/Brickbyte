@@ -1,6 +1,6 @@
 # Brickbyte
 
-A free and open-source voxel-based survival game (a.k.a. Minecraft clone), compatible with Windows, macOS, and Linux.
+A free and open-source voxel-based survival game (a.k.a. Minecraft clone), compatible with Windows, macOS, and Linux. It would also be compatible with Android and iOS, but there is no official support.
 
 ### Features
 
