@@ -1,5 +1,8 @@
-use glam::{Mat4, Vec3};
-use glow::{Buffer, Context, HasContext, Program, VertexArray};
+mod world;
+
+use crate::world::chunk::Chunk;
+use glam::{IVec3, Mat4, Vec3};
+use glow::{Context, HasContext, Program};
 use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
 use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentGlContext, PossiblyCurrentContext};
 use glutin::display::{Display, GlDisplay};
@@ -22,8 +25,6 @@ struct Brickbyte{
     gl_surface: Option<Surface<WindowSurface>>,
     gl: Option<Context>,
     program: Option<Program>,
-    vao: Option<VertexArray>,
-    vbo: Option<Buffer>,
     camera_pos: Vec3,
     camera_front: Vec3,
     camera_up: Vec3,
@@ -33,6 +34,7 @@ struct Brickbyte{
     yaw: f32,
     pitch: f32,
     mouse_sens: f32,
+    chunks: Vec<Chunk>
 }
 
 impl Brickbyte {
@@ -44,8 +46,6 @@ impl Brickbyte {
             gl_surface: None,
             gl: None,
             program: None,
-            vao: None,
-            vbo: None,
             camera_pos: Vec3::new(0.0, 0.0, 3.0),
             camera_front: Vec3::new(0.0, 0.0, -1.0),
             camera_up: Vec3::Y,
@@ -54,7 +54,8 @@ impl Brickbyte {
             last_update: Instant::now(),
             yaw: -90.0,
             pitch: 0.0,
-            mouse_sens: 0.1
+            mouse_sens: 0.04,
+            chunks: Vec::new()
         }
     }
 
@@ -84,7 +85,7 @@ impl Brickbyte {
         unsafe {self.gl.as_ref().unwrap().enable(glow::DEPTH_TEST)};
     }
 
-    fn init_shader_and_buffers(&mut self){
+    fn init_shader_and_buffers(&mut self) {
         let gl = self.gl.as_ref().unwrap();
 
         let vertex_shader_src = r#"
@@ -129,71 +130,10 @@ impl Brickbyte {
             self.program = Some(program);
         }
 
-        let vertices: Vec<f32> = vec![
-            // Front face (red)
-            -0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
-            0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
-            0.5,  0.5, -0.5, 1.0, 0.0, 0.0,
-            0.5,  0.5, -0.5, 1.0, 0.0, 0.0,
-            -0.5,  0.5, -0.5, 1.0, 0.0, 0.0,
-            -0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
-            // Back face (green)
-            -0.5, -0.5,  0.5, 0.0, 1.0, 0.0,
-            0.5, -0.5,  0.5, 0.0, 1.0, 0.0,
-            0.5,  0.5,  0.5, 0.0, 1.0, 0.0,
-            0.5,  0.5,  0.5, 0.0, 1.0, 0.0,
-            -0.5,  0.5,  0.5, 0.0, 1.0, 0.0,
-            -0.5, -0.5,  0.5, 0.0, 1.0, 0.0,
-            // Left face (blue)
-            -0.5,  0.5,  0.5, 0.0, 0.0, 1.0,
-            -0.5,  0.5, -0.5, 0.0, 0.0, 1.0,
-            -0.5, -0.5, -0.5, 0.0, 0.0, 1.0,
-            -0.5, -0.5, -0.5, 0.0, 0.0, 1.0,
-            -0.5, -0.5,  0.5, 0.0, 0.0, 1.0,
-            -0.5,  0.5,  0.5, 0.0, 0.0, 1.0,
-            // Right face (yellow)
-            0.5,  0.5,  0.5, 1.0, 1.0, 0.0,
-            0.5,  0.5, -0.5, 1.0, 1.0, 0.0,
-            0.5, -0.5, -0.5, 1.0, 1.0, 0.0,
-            0.5, -0.5, -0.5, 1.0, 1.0, 0.0,
-            0.5, -0.5,  0.5, 1.0, 1.0, 0.0,
-            0.5,  0.5,  0.5, 1.0, 1.0, 0.0,
-            // Bottom face (cyan)
-            -0.5, -0.5, -0.5, 0.0, 1.0, 1.0,
-            0.5, -0.5, -0.5, 0.0, 1.0, 1.0,
-            0.5, -0.5,  0.5, 0.0, 1.0, 1.0,
-            0.5, -0.5,  0.5, 0.0, 1.0, 1.0,
-            -0.5, -0.5,  0.5, 0.0, 1.0, 1.0,
-            -0.5, -0.5, -0.5, 0.0, 1.0, 1.0,
-            // Top face (magenta)
-            -0.5,  0.5, -0.5, 1.0, 0.0, 1.0,
-            0.5,  0.5, -0.5, 1.0, 0.0, 1.0,
-            0.5,  0.5,  0.5, 1.0, 0.0, 1.0,
-            0.5,  0.5,  0.5, 1.0, 0.0, 1.0,
-            -0.5,  0.5,  0.5, 1.0, 0.0, 1.0,
-            -0.5,  0.5, -0.5, 1.0, 0.0, 1.0,
-        ];
+        self.chunks.push(Chunk::new(IVec3::new(0, 0, 0), self.program.unwrap()));
 
-        unsafe {
-            let vao = gl.create_vertex_array().unwrap();
-            gl.bind_vertex_array(Some(vao));
-
-            let vbo = gl.create_buffer().unwrap();
-            gl.bind_buffer(glow::ARRAY_BUFFER, Some(vbo));
-            gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, vertices.as_slice().align_to::<u8>().1, glow::STATIC_DRAW);
-
-            gl.vertex_attrib_pointer_f32(0, 3, glow::FLOAT, false, 6 * size_of::<f32>() as i32, 0);
-            gl.enable_vertex_attrib_array(0);
-
-            gl.vertex_attrib_pointer_f32(1, 3, glow::FLOAT, false, 6 * size_of::<f32>() as i32, 3 * size_of::<f32>() as i32);
-            gl.enable_vertex_attrib_array(1);
-
-            gl.bind_buffer(glow::ARRAY_BUFFER, None);
-            gl.bind_vertex_array(None);
-
-            self.vao = Some(vao);
-            self.vbo = Some(vbo);
-        }
+        self.chunks.get_mut(0).unwrap().initialize();
+        self.chunks.get_mut(0).unwrap().reload_chunk(false, gl);
     }
 
     fn update_camera(&mut self, delta_time: f32) {
@@ -220,7 +160,7 @@ impl Brickbyte {
         }
     }
 
-    fn update_camera_direction(&mut self){
+    fn update_camera_direction(&mut self) {
         let yaw_rad = self.yaw.to_radians();
         let pitch_rad = self.pitch.to_radians();
 
@@ -234,7 +174,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
         let window = event_loop.create_window(window_attributes).unwrap();
         self.window = Some(window);
 
-        if let Some(window) = self.window.take(){
+        if let Some(window) = self.window.take() {
             self.init_gl(&window);
             window.set_cursor_grab(CursorGrabMode::Confined).unwrap();
             window.set_cursor_visible(false);
@@ -267,7 +207,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     ElementState::Pressed => {
                         self.keys_pressed.insert(key_code);
 
-                        if key_code == KeyCode::Backspace{
+                        if key_code == KeyCode::Backspace {
                             event_loop.exit();
                         }
                     }
@@ -278,9 +218,10 @@ impl winit::application::ApplicationHandler for Brickbyte {
             }
 
             WindowEvent::Focused(focused) => {
-                if let Some(window) = self.window.as_ref(){
+                if let Some(window) = self.window.as_ref() {
                     if focused{
                         if let Err(_e) = window.set_cursor_grab(CursorGrabMode::Confined) {
+                            //Retry because on X11 grabbing cursor is blocked while tabbing back in
                             std::thread::sleep(std::time::Duration::from_millis(100));
                             window.set_cursor_grab(CursorGrabMode::Confined).unwrap();
                         }
@@ -308,13 +249,9 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     gl.clear_color(0.5, 0.7, 0.9, 1.0);
                     gl.clear(glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT);
 
-                    gl.use_program(self.program);
-                    let mvp_loc = gl.get_uniform_location(self.program.unwrap(), "mvp");
-                    gl.uniform_matrix_4_f32_slice(mvp_loc.as_ref(), false, mvp.as_ref());
-
-                    gl.bind_vertex_array(self.vao);
-                    gl.draw_arrays(glow::TRIANGLES, 0, 36);
-                    gl.bind_vertex_array(None);
+                    for chunk in &self.chunks {
+                        chunk.render(gl, mvp);
+                    }
                 }
 
                 self.gl_surface.as_ref().unwrap().swap_buffers(self.gl_context.as_ref().unwrap()).unwrap();
