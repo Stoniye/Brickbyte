@@ -18,7 +18,7 @@ pub struct Chunk {
 
 impl Chunk {
     pub fn new(position: IVec3, shader: Program) -> Self {
-        Chunk{
+        let mut chunk: Chunk = Chunk{
             blocks: HashMap::new(),
             neighbors: HashMap::new(),
             position,
@@ -27,7 +27,10 @@ impl Chunk {
             vertex_array_object: None,
             vertices: None,
             indices: None
-        }
+        };
+        chunk.initialize();
+
+        chunk
     }
 
     fn initialize_blocks(&mut self) {
@@ -196,6 +199,8 @@ impl Chunk {
 
     pub fn render(&self, gl: &Context, mvp: Mat4) {
         unsafe {
+            //TODO: Calculate chunk position into the rendering
+
             gl.use_program(Some(self.shader));
             gl.uniform_matrix_4_f32_slice(gl.get_uniform_location(self.shader, "mvp").as_ref(), false, mvp.as_ref());
 

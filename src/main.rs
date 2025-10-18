@@ -121,9 +121,10 @@ impl Brickbyte {
         }
 
         self.chunks.push(Chunk::new(IVec3::new(0, 0, 0), self.program.unwrap()));
-
-        self.chunks.get_mut(0).unwrap().initialize();
-        self.chunks.get_mut(0).unwrap().reload_chunk(false, gl);
+        
+        for chunk in self.chunks.iter_mut(){
+            chunk.reload_chunk(false, gl);
+        }
     }
 
     fn update_camera(&mut self, delta_time: f32) {
