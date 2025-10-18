@@ -94,7 +94,7 @@ impl Chunk {
 
     fn block_is_air(&self, pos: IVec3) -> bool {
         //TODO: Check neighbor blocks if outside of chunk
-        self.blocks.get(&pos).copied().unwrap_or(0) != 0
+        self.blocks.get(&pos).copied().unwrap_or(0) == 0
     }
 
     fn add_face(vertices: &mut Vec<f32>, indices: &mut Vec<i32>, pos: IVec3, normal: IVec3, index: &mut i32) {
