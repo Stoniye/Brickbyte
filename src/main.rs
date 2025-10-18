@@ -9,6 +9,7 @@ use glutin::display::{Display, GlDisplay};
 use glutin::surface::{GlSurface, Surface, SurfaceAttributesBuilder, WindowSurface};
 use std::collections::HashSet;
 use std::ffi::CString;
+use std::fs::read_to_string;
 use std::num::NonZeroU32;
 use std::time::Instant;
 use winit::dpi::PhysicalSize;
@@ -88,35 +89,24 @@ impl Brickbyte {
     fn init_shader_and_buffers(&mut self) {
         let gl = self.gl.as_ref().unwrap();
 
-        let vertex_shader_src = r#"
-            #version 330 core
-            layout(location = 0) in vec3 position;
-            layout(location = 1) in vec3 color;
-            uniform mat4 mvp;
-            out vec3 frag_color;
-            void main() {
-                gl_Position = mvp * vec4(position, 1.0);
-                frag_color = color;
-            }
-        "#;
+        let vertex_shader_src = match read_to_string("src/shader/vertex.glsl") {
+            Ok(src) => src,
+            Err(e) => { panic!("Error reading vertex shader: {}", e); }
+        };
 
-        let fragment_shader_src = r#"
-            #version 330 core
-            in vec3 frag_color;
-            out vec4 out_color;
-            void main() {
-                out_color = vec4(frag_color, 1.0);
-            }
-        "#;
+        let fragment_shader_src = match read_to_string("src/shader/fragment.glsl") {
+            Ok(src) => src,
+            Err(e) => { panic!("Error reading fragment shader: {}", e); }
+        };
 
         unsafe {
             let vertex_shader = gl.create_shader(glow::VERTEX_SHADER).unwrap();
-            gl.shader_source(vertex_shader, vertex_shader_src);
+            gl.shader_source(vertex_shader, &vertex_shader_src);
             gl.compile_shader(vertex_shader);
             assert!(gl.get_shader_compile_status(vertex_shader));
 
             let fragment_shader = gl.create_shader(glow::FRAGMENT_SHADER).unwrap();
-            gl.shader_source(fragment_shader, fragment_shader_src);
+            gl.shader_source(fragment_shader, &fragment_shader_src);
             gl.compile_shader(fragment_shader);
             assert!(gl.get_shader_compile_status(fragment_shader));
 
