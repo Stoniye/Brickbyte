@@ -235,13 +235,14 @@ impl winit::application::ApplicationHandler for Brickbyte {
                 let aspect_ratio = window.inner_size().width as f32 / window.inner_size().height as f32;
                 let projection = Mat4::perspective_rh_gl(90.0f32.to_radians(), aspect_ratio, 0.1, 100.0);
                 let view = Mat4::look_at_rh(self.camera_pos, self.camera_pos + self.camera_front, self.camera_up);
+                let pv = projection * view;
 
                 unsafe {
                     gl.clear_color(0.5, 0.7, 0.9, 1.0);
                     gl.clear(glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT);
 
                     for chunk in &self.chunks {
-                        chunk.render(gl, projection, view);
+                        chunk.render(gl, pv);
                     }
                 }
 

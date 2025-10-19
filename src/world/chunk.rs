@@ -197,10 +197,10 @@ impl Chunk {
         }
     }
 
-    pub fn render(&self, gl: &Context, projection: Mat4, view: Mat4) {
+    pub fn render(&self, gl: &Context, pv: Mat4) {
         unsafe {
             let model = Mat4::from_translation(Vec3::new((self.position.x as f32) * CHUNK_DIMENSION as f32, (self.position.y as f32) * CHUNK_DIMENSION as f32, 0.0));
-            let mvp = projection * view * model;
+            let mvp = pv * model;
 
             gl.use_program(Some(self.shader));
             gl.uniform_matrix_4_f32_slice(gl.get_uniform_location(self.shader, "mvp").as_ref(), false, mvp.as_ref());
