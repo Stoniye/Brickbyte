@@ -1,7 +1,7 @@
 mod world;
 
 use crate::world::chunk::Chunk;
-use glam::{IVec3, Mat4, Vec3};
+use glam::{IVec2, Mat4, Vec3};
 use glow::{Context, HasContext, Program};
 use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
 use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentGlContext, PossiblyCurrentContext};
@@ -120,7 +120,9 @@ impl Brickbyte {
             self.program = Some(program);
         }
 
-        self.chunks.push(Chunk::new(IVec3::new(0, 0, 0), self.program.unwrap()));
+        self.chunks.push(Chunk::new(IVec2::new(2, 0), self.program.unwrap()));
+        self.chunks.push(Chunk::new(IVec2::new(1, 0), self.program.unwrap()));
+        self.chunks.push(Chunk::new(IVec2::new(0, 0), self.program.unwrap()));
         
         for chunk in self.chunks.iter_mut(){
             chunk.reload_chunk(false, gl);
@@ -231,17 +233,15 @@ impl winit::application::ApplicationHandler for Brickbyte {
                 unsafe {gl.viewport(0, 0, window.inner_size().width as i32, window.inner_size().height as i32);}
 
                 let aspect_ratio = window.inner_size().width as f32 / window.inner_size().height as f32;
-                let projection = Mat4::perspective_rh_gl(45.0f32.to_radians(), aspect_ratio, 0.1, 100.0);
+                let projection = Mat4::perspective_rh_gl(90.0f32.to_radians(), aspect_ratio, 0.1, 100.0);
                 let view = Mat4::look_at_rh(self.camera_pos, self.camera_pos + self.camera_front, self.camera_up);
-                let model = Mat4::IDENTITY;
-                let mvp = projection * view * model;
 
                 unsafe {
                     gl.clear_color(0.5, 0.7, 0.9, 1.0);
                     gl.clear(glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT);
 
                     for chunk in &self.chunks {
-                        chunk.render(gl, mvp);
+                        chunk.render(gl, projection, view);
                     }
                 }
 

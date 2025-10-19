@@ -1,4 +1,4 @@
-use glam::{IVec3, Mat4, Vec3};
+use glam::{IVec2, IVec3, Mat4, Vec3};
 use glow::{Context, HasContext, NativeBuffer, NativeVertexArray, Program, TRIANGLES, UNSIGNED_INT};
 use std::collections::HashMap;
 
@@ -8,7 +8,7 @@ const CHUNK_HEIGHT: u8 = 100;
 pub struct Chunk {
     blocks: HashMap<IVec3, u8>,
     neighbors: HashMap<IVec3, Chunk>,
-    position: IVec3,
+    position: IVec2,
     shader: Program,
     vertex_buffer_object: Option<NativeBuffer>,
     vertex_array_object: Option<NativeVertexArray>,
@@ -17,7 +17,7 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    pub fn new(position: IVec3, shader: Program) -> Self {
+    pub fn new(position: IVec2, shader: Program) -> Self {
         let mut chunk: Chunk = Chunk{
             blocks: HashMap::new(),
             neighbors: HashMap::new(),
@@ -197,9 +197,10 @@ impl Chunk {
         }
     }
 
-    pub fn render(&self, gl: &Context, mvp: Mat4) {
+    pub fn render(&self, gl: &Context, projection: Mat4, view: Mat4) {
         unsafe {
-            //TODO: Calculate chunk position into the rendering
+            let model = Mat4::from_translation(Vec3::new((self.position.x as f32) * CHUNK_DIMENSION as f32, (self.position.y as f32) * CHUNK_DIMENSION as f32, 0.0));
+            let mvp = projection * view * model;
 
             gl.use_program(Some(self.shader));
             gl.uniform_matrix_4_f32_slice(gl.get_uniform_location(self.shader, "mvp").as_ref(), false, mvp.as_ref());
