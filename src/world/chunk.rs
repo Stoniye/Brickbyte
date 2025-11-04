@@ -124,7 +124,9 @@ impl Chunk {
             pos.z
         );
 
-        self.neighbors.get(&dir).unwrap().get_block(relative_pos) == 0
+        true
+
+        //TODO: self.neighbors.get(&dir).unwrap().get_block(relative_pos) == 0
     }
 
     fn add_face(vertices: &mut Vec<f32>, indices: &mut Vec<i32>, pos: IVec3, normal: IVec3, index: &mut i32) {

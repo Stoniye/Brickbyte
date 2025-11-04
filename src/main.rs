@@ -7,7 +7,7 @@ use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
 use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentGlContext, PossiblyCurrentContext};
 use glutin::display::{Display, GlDisplay};
 use glutin::surface::{GlSurface, Surface, SurfaceAttributesBuilder, WindowSurface};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::ffi::CString;
 use std::fs::read_to_string;
 use std::num::NonZeroU32;
@@ -35,7 +35,7 @@ struct Brickbyte{
     yaw: f32,
     pitch: f32,
     mouse_sens: f32,
-    chunks: Vec<Chunk>
+    chunks: HashMap<IVec2, Chunk>,
 }
 
 impl Brickbyte {
@@ -56,7 +56,7 @@ impl Brickbyte {
             yaw: -90.0,
             pitch: 0.0,
             mouse_sens: 0.04,
-            chunks: Vec::new()
+            chunks: HashMap::new()
         }
     }
 
@@ -120,11 +120,18 @@ impl Brickbyte {
             self.program = Some(program);
         }
 
-        self.chunks.push(Chunk::new(IVec2::new(2, 0), self.program.unwrap()));
-        self.chunks.push(Chunk::new(IVec2::new(1, 0), self.program.unwrap()));
-        self.chunks.push(Chunk::new(IVec2::new(0, 0), self.program.unwrap()));
+        const X_CHUNKS: i8 = 2;
+        const Y_CHUNKS: i8 = 2;
+
+        for x in 0..X_CHUNKS {
+            for y in 0..Y_CHUNKS {
+                self.chunks.insert(IVec2::new(x as i32, y as i32), Chunk::new(IVec2::new(x as i32, y as i32), self.program.unwrap()));
+            }
+        }
         
-        for chunk in self.chunks.iter_mut(){
+        //TODO: Set neighbors of every chunk
+        
+        for (_pos, chunk) in self.chunks.iter_mut(){
             chunk.reload_chunk(false, gl);
         }
     }
@@ -241,7 +248,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     gl.clear_color(0.5, 0.7, 0.9, 1.0);
                     gl.clear(glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT);
 
-                    for chunk in &self.chunks {
+                    for (_pos, chunk) in &self.chunks {
                         chunk.render(gl, pv);
                     }
                 }
