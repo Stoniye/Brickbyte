@@ -1,13 +1,13 @@
 mod world;
 
-use crate::world::chunk::Chunk;
+use crate::world::world::World;
 use glam::{IVec2, Mat4, Vec3};
 use glow::{Context, HasContext, Program};
 use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
 use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentGlContext, PossiblyCurrentContext};
 use glutin::display::{Display, GlDisplay};
 use glutin::surface::{GlSurface, Surface, SurfaceAttributesBuilder, WindowSurface};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::ffi::CString;
 use std::fs::read_to_string;
 use std::num::NonZeroU32;
@@ -35,7 +35,7 @@ struct Brickbyte{
     yaw: f32,
     pitch: f32,
     mouse_sens: f32,
-    chunks: HashMap<IVec2, Chunk>,
+    world: World
 }
 
 impl Brickbyte {
@@ -56,7 +56,7 @@ impl Brickbyte {
             yaw: -90.0,
             pitch: 0.0,
             mouse_sens: 0.04,
-            chunks: HashMap::new()
+            world: World::new()
         }
     }
 
@@ -125,13 +125,11 @@ impl Brickbyte {
 
         for x in 0..X_CHUNKS {
             for y in 0..Y_CHUNKS {
-                self.chunks.insert(IVec2::new(x as i32, y as i32), Chunk::new(IVec2::new(x as i32, y as i32), self.program.unwrap()));
+                self.world.insert_chunk(IVec2::new(x as i32, y as i32), self.program.unwrap());
             }
         }
         
-        for (_pos, chunk) in self.chunks.iter_mut(){
-            chunk.reload_chunk(gl);
-        }
+        self.world.reload_world(gl);
     }
 
     fn update_camera(&mut self, delta_time: f32) {
@@ -246,9 +244,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     gl.clear_color(0.5, 0.7, 0.9, 1.0);
                     gl.clear(glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT);
 
-                    for (_pos, chunk) in &self.chunks {
-                        chunk.render(gl, pv);
-                    }
+                    self.world.render_world(gl, pv);
                 }
 
                 self.gl_surface.as_ref().unwrap().swap_buffers(self.gl_context.as_ref().unwrap()).unwrap();
