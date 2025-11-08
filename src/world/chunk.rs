@@ -7,7 +7,6 @@ const CHUNK_HEIGHT: u8 = 100;
 
 pub struct Chunk {
     blocks: HashMap<IVec3, u8>,
-    neighbors: HashMap<IVec2, Chunk>,
     position: IVec2,
     shader: Program,
     vertex_buffer_object: Option<NativeBuffer>,
@@ -20,7 +19,6 @@ impl Chunk {
     pub fn new(position: IVec2, shader: Program) -> Self {
         let mut chunk: Chunk = Chunk{
             blocks: HashMap::new(),
-            neighbors: HashMap::new(),
             position,
             shader,
             vertex_buffer_object: None,
@@ -45,7 +43,7 @@ impl Chunk {
         }
     }
 
-    pub fn reload_chunk(&mut self, reload_neighbors: bool, gl: &Context){
+    pub fn reload_chunk(&mut self, gl: &Context){
         self.vertices = Some(Vec::new());
         self.indices = Some(Vec::new());
 
@@ -86,47 +84,10 @@ impl Chunk {
         }
 
         Self::setup_buffers(self, &gl);
-
-        //TODO: Only reload neighbor chunk if block next to it got changed, otherwise it is not necessarily
-        if reload_neighbors {
-            for (_pos, neighbor) in &mut self.neighbors {
-                neighbor.reload_chunk(false, &gl);
-            }
-        }
     }
 
     fn block_is_air(&self, pos: IVec3) -> bool {
-
-        if pos.x >= 0 && pos.x <= CHUNK_DIMENSION as i32 && pos.y >= 0 && pos.y <= CHUNK_DIMENSION as i32 && pos.z >= 0 && pos.z <= CHUNK_HEIGHT as i32 {
-            return self.get_block(pos) == 0; //Block is in Chunk
-        }
-
-        //Block is not in Chunk, get from right Chunk
-        let dir: IVec2 = IVec2::new(
-            if pos.x > CHUNK_DIMENSION as i32 {
-                1
-            } else if pos.x < 0 {
-                -1
-            } else {
-                0
-            },
-            if pos.y > CHUNK_DIMENSION as i32 {
-                1
-            } else if pos.y < 0 {
-                -1
-            } else {
-                0
-            });
-
-        let relative_pos: IVec3 = IVec3::new(
-            (pos.x % CHUNK_DIMENSION as i32 + CHUNK_DIMENSION as i32) % CHUNK_DIMENSION as i32,
-            (pos.x % CHUNK_DIMENSION as i32 + CHUNK_DIMENSION as i32) % CHUNK_DIMENSION as i32,
-            pos.z
-        );
-
-        true
-
-        //TODO: self.neighbors.get(&dir).unwrap().get_block(relative_pos) == 0
+        self.get_block(pos) == 0
     }
 
     fn add_face(vertices: &mut Vec<f32>, indices: &mut Vec<i32>, pos: IVec3, normal: IVec3, index: &mut i32) {
@@ -250,10 +211,6 @@ impl Chunk {
         } else {
             self.blocks.insert(block_pos, id);
         }
-    }
-
-    pub fn set_neighbor(&mut self, dir: IVec2, neighbor: Chunk) {
-        self.neighbors.insert(dir, neighbor);
     }
 
     pub fn initialize(&mut self) {

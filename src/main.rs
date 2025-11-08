@@ -129,10 +129,8 @@ impl Brickbyte {
             }
         }
         
-        //TODO: Set neighbors of every chunk
-        
         for (_pos, chunk) in self.chunks.iter_mut(){
-            chunk.reload_chunk(false, gl);
+            chunk.reload_chunk(gl);
         }
     }
 
