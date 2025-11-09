@@ -1,6 +1,8 @@
+use std::cell::RefCell;
 use crate::world::chunk::Chunk;
 use glam::{IVec2, Mat4};
 use std::collections::HashMap;
+use std::rc::Weak;
 use glow::{Context, Program};
 
 pub struct World {
@@ -13,9 +15,9 @@ impl World {
             chunks: HashMap::new()
         }
     }
-    
-    pub fn insert_chunk(&mut self, pos: IVec2, shader: Program) {
-        self.chunks.insert(IVec2::new(pos.x, pos.y), Chunk::new(IVec2::new(pos.x, pos.y), shader));
+
+    pub fn insert_chunk(&mut self, pos: IVec2, shader: Program, world_weak: Weak<RefCell<World>>) {
+        self.chunks.insert(pos, Chunk::new(pos, shader, world_weak));
     }
 
     pub fn reload_world(&mut self, gl: &Context) {

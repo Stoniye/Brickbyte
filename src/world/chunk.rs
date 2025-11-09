@@ -1,6 +1,9 @@
+use std::cell::RefCell;
 use glam::{IVec2, IVec3, Mat4, Vec3};
 use glow::{Context, HasContext, NativeBuffer, NativeVertexArray, Program, TRIANGLES, UNSIGNED_INT};
 use std::collections::HashMap;
+use std::rc::Weak;
+use crate::world::world::World;
 
 const CHUNK_DIMENSION: u8 = 16;
 const CHUNK_HEIGHT: u8 = 100;
@@ -12,11 +15,12 @@ pub struct Chunk {
     vertex_buffer_object: Option<NativeBuffer>,
     vertex_array_object: Option<NativeVertexArray>,
     vertices: Option<Vec<f32>>,
-    indices: Option<Vec<i32>>
+    indices: Option<Vec<i32>>,
+    world: Weak<RefCell<World>>,
 }
 
 impl Chunk {
-    pub fn new(position: IVec2, shader: Program) -> Self {
+    pub fn new(position: IVec2, shader: Program, world: Weak<RefCell<World>>) -> Self {
         let mut chunk: Chunk = Chunk{
             blocks: HashMap::new(),
             position,
@@ -24,7 +28,8 @@ impl Chunk {
             vertex_buffer_object: None,
             vertex_array_object: None,
             vertices: None,
-            indices: None
+            indices: None,
+            world
         };
         chunk.initialize();
 
