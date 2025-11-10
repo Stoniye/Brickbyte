@@ -1,6 +1,5 @@
 mod world;
 
-use std::cell::RefCell;
 use crate::world::world::World;
 use glam::{IVec2, Mat4, Vec3};
 use glow::{Context, HasContext, Program};
@@ -12,7 +11,6 @@ use std::collections::HashSet;
 use std::ffi::CString;
 use std::fs::read_to_string;
 use std::num::NonZeroU32;
-use std::rc::Rc;
 use std::time::Instant;
 use winit::dpi::PhysicalSize;
 use winit::event::{DeviceEvent, ElementState, KeyEvent, WindowEvent};
@@ -37,7 +35,7 @@ struct Brickbyte{
     yaw: f32,
     pitch: f32,
     mouse_sens: f32,
-    world: Rc<RefCell<World>>
+    world: World
 }
 
 impl Brickbyte {
@@ -58,7 +56,7 @@ impl Brickbyte {
             yaw: -90.0,
             pitch: 0.0,
             mouse_sens: 0.04,
-            world: Rc::new(RefCell::new(World::new()))
+            world: World::new()
         }
     }
 
@@ -127,11 +125,11 @@ impl Brickbyte {
 
         for x in 0..X_CHUNKS {
             for y in 0..Y_CHUNKS {
-                self.world.borrow_mut().insert_chunk(IVec2::new(x as i32, y as i32), self.program.unwrap(), Rc::downgrade(&self.world));
+                self.world.insert_chunk(IVec2::new(x as i32, y as i32), self.program.unwrap());
             }
         }
 
-        self.world.borrow_mut().reload_world(gl);
+        self.world.reload_world(gl);
     }
 
     fn update_camera(&mut self, delta_time: f32) {
@@ -246,7 +244,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     gl.clear_color(0.5, 0.7, 0.9, 1.0);
                     gl.clear(glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT);
 
-                    self.world.borrow_mut().render_world(gl, pv);
+                    self.world.render_world(gl, pv);
                 }
 
                 self.gl_surface.as_ref().unwrap().swap_buffers(self.gl_context.as_ref().unwrap()).unwrap();

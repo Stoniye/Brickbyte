@@ -1,9 +1,6 @@
-use std::cell::RefCell;
 use glam::{IVec2, IVec3, Mat4, Vec3};
 use glow::{Context, HasContext, NativeBuffer, NativeVertexArray, Program, TRIANGLES, UNSIGNED_INT};
 use std::collections::HashMap;
-use std::rc::Weak;
-use crate::world::world::World;
 
 const CHUNK_DIMENSION: u8 = 16;
 const CHUNK_HEIGHT: u8 = 100;
@@ -15,12 +12,11 @@ pub struct Chunk {
     vertex_buffer_object: Option<NativeBuffer>,
     vertex_array_object: Option<NativeVertexArray>,
     vertices: Option<Vec<f32>>,
-    indices: Option<Vec<i32>>,
-    world: Weak<RefCell<World>>,
+    indices: Option<Vec<i32>>
 }
 
 impl Chunk {
-    pub fn new(position: IVec2, shader: Program, world: Weak<RefCell<World>>) -> Self {
+    pub fn new(position: IVec2, shader: Program) -> Self {
         let mut chunk: Chunk = Chunk{
             blocks: HashMap::new(),
             position,
@@ -28,8 +24,7 @@ impl Chunk {
             vertex_buffer_object: None,
             vertex_array_object: None,
             vertices: None,
-            indices: None,
-            world
+            indices: None
         };
         chunk.initialize();
 
@@ -172,7 +167,7 @@ impl Chunk {
             let vao = gl.create_vertex_array().unwrap();
             gl.bind_vertex_array(Some(vao));
 
-           let vbo = gl.create_buffer().unwrap();
+            let vbo = gl.create_buffer().unwrap();
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(vbo));
             gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, self.vertices.as_ref().unwrap().align_to::<u8>().1, glow::STATIC_DRAW);
 
