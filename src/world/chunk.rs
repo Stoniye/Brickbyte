@@ -84,10 +84,14 @@ impl Chunk {
         }
 
         Self::setup_buffers(self, &gl);
+
+        //TODO: Reload neighbor chunk
     }
 
     fn block_is_air(&self, pos: IVec3) -> bool {
         self.get_block(pos) == 0
+
+        //TODO: Check neighbor chunk
     }
 
     fn add_face(vertices: &mut Vec<f32>, indices: &mut Vec<i32>, pos: IVec3, normal: IVec3, index: &mut i32) {
