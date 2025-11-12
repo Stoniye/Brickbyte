@@ -14,8 +14,8 @@ impl World {
         }
     }
 
-    pub fn insert_chunk(&mut self, pos: IVec2, shader: Program) {
-        self.chunks.insert(IVec2::new(pos.x, pos.y), Chunk::new(IVec2::new(pos.x, pos.y), shader));
+    pub fn insert_chunk(&mut self, pos: IVec2, shader: Program, gl: &Context) {
+        self.chunks.insert(IVec2::new(pos.x, pos.y), Chunk::new(IVec2::new(pos.x, pos.y), shader, gl));
     }
 
     pub fn reload_world(&mut self, gl: &Context) {

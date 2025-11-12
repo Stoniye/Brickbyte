@@ -1,8 +1,10 @@
 #version 330 core
 
-in vec3 frag_color;
+in vec2 texture_coords;
 out vec4 out_color;
 
+uniform sampler2D texture_atlas;
+
 void main() {
-    out_color = vec4(frag_color, 1.0);
+    out_color = texture(texture_atlas, texture_coords);
 }

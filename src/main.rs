@@ -123,9 +123,11 @@ impl Brickbyte {
         const X_CHUNKS: i8 = 2;
         const Y_CHUNKS: i8 = 2;
 
+        let gl: &Context = &self.gl.as_mut().unwrap();
+
         for x in 0..X_CHUNKS {
             for y in 0..Y_CHUNKS {
-                self.world.insert_chunk(IVec2::new(x as i32, y as i32), self.program.unwrap());
+                self.world.insert_chunk(IVec2::new(x as i32, y as i32), self.program.unwrap(), gl);
             }
         }
 

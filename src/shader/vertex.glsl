@@ -1,11 +1,12 @@
 #version 330 core
 
 layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 color;
+layout(location = 1) in vec2 texture_coords_in;
+
 uniform mat4 mvp;
-out vec3 frag_color;
+out vec2 texture_coords;
 
 void main() {
     gl_Position = mvp * vec4(position, 1.0);
-    frag_color = color;
+    texture_coords = texture_coords_in;
 }

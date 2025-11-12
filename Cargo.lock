@@ -6,6 +6,7 @@ version = 4
 name = "Brickbyte"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "egui 0.32.3",
  "egui-winit",
  "egui_glow",
