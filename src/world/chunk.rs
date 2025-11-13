@@ -3,7 +3,6 @@ use glow::{Context, HasContext, NativeBuffer, NativeTexture, NativeVertexArray, 
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::slice::from_raw_parts;
 use rand::Rng;
 
 const CHUNK_DIMENSION: u8 = 16;
@@ -69,9 +68,7 @@ impl Chunk {
                 floats.extend_from_slice(&[pixel[0] as f32 / 255.0, pixel[1] as f32 / 255.0, pixel[2] as f32 / 255.0, pixel[3] as f32 / 255.0])
             }
 
-            let bytes: &[u8] = {
-                from_raw_parts(floats.as_ptr() as *const u8, floats.len() * size_of::<f32>())
-            };
+            let bytes: &[u8] = {std::slice::from_raw_parts(floats.as_ptr() as *const u8, floats.len() * size_of::<f32>())};
 
             gl.tex_image_2d(glow::TEXTURE_2D, 0, glow::RGBA32F as i32, 256, 256, 0, glow::RGBA, glow::FLOAT, glow::PixelUnpackData::Slice(Some(bytes)));
 
