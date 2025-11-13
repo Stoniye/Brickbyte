@@ -39,8 +39,7 @@ impl Chunk {
         for x in 0..CHUNK_DIMENSION {
             for y in 0..CHUNK_HEIGHT {
                 for z in 0..CHUNK_DIMENSION {
-                    let mut rng = rand::rng();
-                    let stone_y: u8 = rng.random_range(12..15);
+                    let stone_y: u8 = rand::rng().random_range(12..15);
 
                     if y <= stone_y {
                         self.set_block(IVec3::new(x as i32, y as i32, z as i32), 3);
