@@ -5,8 +5,8 @@ use std::fs::File;
 use std::io::Read;
 use rand::Rng;
 
-const CHUNK_DIMENSION: u8 = 16;
-const CHUNK_HEIGHT: u8 = 100;
+pub const CHUNK_DIMENSION: u8 = 16;
+pub const CHUNK_HEIGHT: u8 = 100;
 
 pub struct Chunk {
     blocks: HashMap<IVec3, u8>,

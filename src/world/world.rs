@@ -1,4 +1,4 @@
-use crate::world::chunk::Chunk;
+use crate::world::chunk::{Chunk, CHUNK_DIMENSION};
 use glam::{IVec2, IVec3, Mat4};
 use std::collections::HashMap;
 use glow::{Context, Program};
@@ -31,8 +31,8 @@ impl World {
     }
 
     pub fn set_block(&mut self, world_pos: IVec3, gl: &Context) {
-        let chunk_pos: IVec2 = IVec2::new(((world_pos.x / 16) as f32).floor() as i32, ((world_pos.z / 16) as f32).floor() as i32);
-        let pos: IVec3 = IVec3::new(((world_pos.x % 16) + 16) % 16, world_pos.y, ((world_pos.z % 16) + 16) % 16);
+        let chunk_pos: IVec2 = IVec2::new(((world_pos.x / CHUNK_DIMENSION as i32) as f32).floor() as i32, ((world_pos.z / CHUNK_DIMENSION as i32) as f32).floor() as i32);
+        let pos: IVec3 = IVec3::new(((world_pos.x % CHUNK_DIMENSION as i32) + CHUNK_DIMENSION as i32) % CHUNK_DIMENSION as i32, world_pos.y, ((world_pos.z % CHUNK_DIMENSION as i32) + CHUNK_DIMENSION as i32) % CHUNK_DIMENSION as i32);
 
         self.chunks.get_mut(&chunk_pos).unwrap().set_block(pos, 0);
         self.chunks.get_mut(&chunk_pos).unwrap().reload_chunk(gl);

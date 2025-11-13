@@ -1,6 +1,7 @@
 mod world;
 
 use crate::world::world::World;
+use crate::world::player::Player;
 use glam::{IVec2, IVec3, Mat4, Vec3};
 use glow::{Context, HasContext, Program};
 use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
@@ -26,16 +27,10 @@ struct Brickbyte{
     gl_surface: Option<Surface<WindowSurface>>,
     gl: Option<Context>,
     program: Option<Program>,
-    camera_pos: Vec3,
-    camera_front: Vec3,
-    camera_up: Vec3,
-    camera_speed: f32,
     keys_pressed: HashSet<KeyCode>,
     last_update: Instant,
-    yaw: f32,
-    pitch: f32,
-    mouse_sens: f32,
-    world: World
+    world: World,
+    player: Player
 }
 
 impl Brickbyte {
@@ -47,16 +42,10 @@ impl Brickbyte {
             gl_surface: None,
             gl: None,
             program: None,
-            camera_pos: Vec3::new(0.0, 0.0, 3.0),
-            camera_front: Vec3::new(0.0, 0.0, -1.0),
-            camera_up: Vec3::Y,
-            camera_speed: 2.5,
             keys_pressed: HashSet::new(),
             last_update: Instant::now(),
-            yaw: -90.0,
-            pitch: 0.0,
-            mouse_sens: 0.04,
-            world: World::new()
+            world: World::new(),
+            player: Player::new(),
         }
     }
 
@@ -132,37 +121,6 @@ impl Brickbyte {
         }
 
         self.world.reload_world(gl);
-    }
-
-    fn update_camera(&mut self, delta_time: f32) {
-        let camera_speed = self.camera_speed * delta_time;
-        let camera_right = self.camera_front.cross(self.camera_up).normalize();
-
-        if self.keys_pressed.contains(&KeyCode::KeyW){
-            self.camera_pos += camera_speed * self.camera_front;
-        }
-        if self.keys_pressed.contains(&KeyCode::KeyS){
-            self.camera_pos -= camera_speed * self.camera_front;
-        }
-        if self.keys_pressed.contains(&KeyCode::KeyA){
-            self.camera_pos -= camera_speed * camera_right;
-        }
-        if self.keys_pressed.contains(&KeyCode::KeyD){
-            self.camera_pos += camera_speed * camera_right;
-        }
-        if self.keys_pressed.contains(&KeyCode::ShiftLeft){
-            self.camera_pos -= camera_speed * self.camera_up;
-        }
-        if self.keys_pressed.contains(&KeyCode::Space){
-            self.camera_pos += camera_speed * self.camera_up;
-        }
-    }
-
-    fn update_camera_direction(&mut self) {
-        let yaw_rad = self.yaw.to_radians();
-        let pitch_rad = self.pitch.to_radians();
-
-        self.camera_front = Vec3::new(yaw_rad.cos() * pitch_rad.cos(), pitch_rad.sin(), yaw_rad.sin() * pitch_rad.cos()).normalize();
     }
 }
 
@@ -246,7 +204,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
 
                 let aspect_ratio = window.inner_size().width as f32 / window.inner_size().height as f32;
                 let projection = Mat4::perspective_rh_gl(90.0f32.to_radians(), aspect_ratio, 0.1, 100.0);
-                let view = Mat4::look_at_rh(self.camera_pos, self.camera_pos + self.camera_front, self.camera_up);
+                let view = Mat4::look_at_rh(self.player.get_pos(), self.player.get_pos() + self.player.get_camera_front(), self.player.get_camera_up());
                 let pv = projection * view;
 
                 unsafe {
@@ -263,13 +221,9 @@ impl winit::application::ApplicationHandler for Brickbyte {
         }
     }
 
-    //TODO: Keyboard and mouse input can't be processed at the same time on Wayland
     fn device_event(&mut self, _event_loop: &ActiveEventLoop, _device_id: winit::event::DeviceId, event: DeviceEvent) {
         if let DeviceEvent::MouseMotion {delta} = event {
-            self.yaw += delta.0 as f32 * self.mouse_sens;
-            self.pitch -= delta.1 as f32 * self.mouse_sens;
-            self.pitch = self.pitch.clamp(-89.0, 89.0);
-            self.update_camera_direction();
+            self.player.update_rotation(delta);
         }
     }
 
@@ -277,7 +231,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
         let now = Instant::now();
         let delta_time = now.duration_since(self.last_update).as_secs_f32();
         self.last_update = now;
-        self.update_camera(delta_time);
+        self.player.update_pos(delta_time, self.keys_pressed.clone());
 
         if let Some(window) = &self.window{
             window.request_redraw();
