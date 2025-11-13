@@ -2,6 +2,9 @@ use std::collections::HashSet;
 use glam::Vec3;
 use winit::keyboard::KeyCode;
 
+const PLAYER_HEIGHT: u8 = 2;
+const MOUSE_SENS: f32 = 0.04;
+
 pub struct Player {
     pos: Vec3,
     speed: f32,
@@ -9,7 +12,6 @@ pub struct Player {
     camera_up: Vec3,
     yaw: f32,
     pitch: f32,
-    mouse_sens: f32,
 }
 
 impl Player {
@@ -21,7 +23,6 @@ impl Player {
             camera_up: Vec3::Y,
             yaw: -90.0,
             pitch: 0.0,
-            mouse_sens: 0.04,
         }
     }
 
@@ -50,8 +51,8 @@ impl Player {
     }
 
     pub fn update_rotation(&mut self, delta: (f64, f64)) {
-        self.yaw += delta.0 as f32 * self.mouse_sens;
-        self.pitch -= delta.1 as f32 * self.mouse_sens;
+        self.yaw += delta.0 as f32 * MOUSE_SENS;
+        self.pitch -= delta.1 as f32 * MOUSE_SENS;
         self.pitch = self.pitch.clamp(-89.0, 89.0);
 
         let yaw_rad = self.yaw.to_radians();

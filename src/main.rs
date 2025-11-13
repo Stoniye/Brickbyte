@@ -1,8 +1,8 @@
 mod world;
 
-use crate::world::world::World;
 use crate::world::player::Player;
-use glam::{IVec2, IVec3, Mat4, Vec3};
+use crate::world::world::World;
+use glam::{IVec2, IVec3, Mat4};
 use glow::{Context, HasContext, Program};
 use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
 use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentGlContext, PossiblyCurrentContext};
@@ -174,7 +174,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
             }
 
             WindowEvent::MouseInput {state, ..} => {
-                if (state == ElementState::Pressed) {
+                if state == ElementState::Pressed {
                     let world_pos: IVec3 = IVec3::new(0, 0, 0);
                     self.world.set_block(world_pos, self.gl.as_ref().unwrap());
                 }
