@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::slice::from_raw_parts;
+use rand::Rng;
 
 const CHUNK_DIMENSION: u8 = 16;
 const CHUNK_HEIGHT: u8 = 100;
@@ -36,15 +37,16 @@ impl Chunk {
 
     fn initialize_blocks(&mut self) {
         for x in 0..CHUNK_DIMENSION {
-            for y in 0..CHUNK_DIMENSION {
-                for z in 0..CHUNK_HEIGHT {
-                    //TODO: World is sideways (don't know why and i need a break)
+            for y in 0..CHUNK_HEIGHT {
+                for z in 0..CHUNK_DIMENSION {
+                    let mut rng = rand::rng();
+                    let stone_y: u8 = rng.random_range(12..15);
 
-                    if z <= 13 {
+                    if y <= stone_y {
                         self.set_block(IVec3::new(x as i32, y as i32, z as i32), 3);
-                    } else if z <= 15 {
+                    } else if y <= 15 {
                         self.set_block(IVec3::new(x as i32, y as i32, z as i32), 2);
-                    } else if z <= 16 {
+                    } else if y <= 16 {
                         self.set_block(IVec3::new(x as i32, y as i32, z as i32), 1);
                     }
                 }
@@ -256,7 +258,7 @@ impl Chunk {
 
     pub fn render(&self, gl: &Context, pv: Mat4) {
         unsafe {
-            let model = Mat4::from_translation(Vec3::new((self.position.x as f32) * CHUNK_DIMENSION as f32, (self.position.y as f32) * CHUNK_DIMENSION as f32, 0.0));
+            let model = Mat4::from_translation(Vec3::new((self.position.x as f32) * CHUNK_DIMENSION as f32, 0.0, (self.position.y as f32) * CHUNK_DIMENSION as f32));
             let mvp = pv * model;
 
             gl.use_program(Some(self.shader));
