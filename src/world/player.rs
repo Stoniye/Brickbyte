@@ -127,7 +127,7 @@ impl Player {
 
     pub fn get_pos(&self) -> Vec3 {self.pos}
 
-    pub fn get_head_pos(&self) -> Vec3 {Vec3::new(self.pos.x, self.pos.y + PLAYER_HEIGHT as f32, self.pos.z)}
+    pub fn get_head_pos(&self) -> Vec3 {Vec3::new(self.pos.x, self.pos.y + PLAYER_HEIGHT, self.pos.z)}
 
     pub fn get_camera_front(&self) -> Vec3 {self.camera_front}
 

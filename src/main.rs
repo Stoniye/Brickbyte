@@ -2,7 +2,7 @@ mod world;
 
 use crate::world::player::Player;
 use crate::world::world::World;
-use glam::{IVec2, IVec3, Mat4};
+use glam::{IVec2, IVec3, Mat4, Vec2, Vec3, Vec4};
 use glow::{Context, HasContext, Program};
 use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
 use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentGlContext, PossiblyCurrentContext};
@@ -14,11 +14,13 @@ use std::fs::read_to_string;
 use std::num::NonZeroU32;
 use std::time::Instant;
 use winit::dpi::PhysicalSize;
-use winit::event::{DeviceEvent, ElementState, KeyEvent, WindowEvent};
+use winit::event::{DeviceEvent, ElementState, KeyEvent, MouseButton, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, EventLoopBuilder};
 use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use winit::window::{CursorGrabMode, Window, WindowId};
+
+const POV: f32 = 90.0;
 
 struct Brickbyte{
     window: Option<Window>,
@@ -173,10 +175,37 @@ impl winit::application::ApplicationHandler for Brickbyte {
                 }
             }
 
-            WindowEvent::MouseInput {state, ..} => {
+            WindowEvent::MouseInput { state, button, .. } => {
                 if state == ElementState::Pressed {
-                    let world_pos: IVec3 = IVec3::new(0, 0, 0);
-                    self.world.set_block(world_pos, self.gl.as_ref().unwrap());
+                    let window = self.window.as_ref().unwrap();
+                    let size = window.inner_size();
+
+                    let projection = Mat4::perspective_rh_gl(POV.to_radians(), (size.width as f32 / size.height as f32), 0.1, 100.0);
+                    let view = Mat4::look_at_rh(self.player.get_head_pos(), self.player.get_head_pos() + self.player.get_camera_front(), self.player.get_camera_up());
+
+                    let ndc = Vec4::new((2.0 * (size.width as f32 / 2.0)) / size.width as f32 - 1.0, 1.0 - (2.0 * (size.height as f32 / 2.0)) / size.height as f32, -1.0, 1.0);
+
+                    let mut eye = projection.inverse() * ndc;
+                    eye = Vec4::new(eye.x, eye.y, -1.0, 0.0);
+
+                    let world_ray = view.inverse() * eye;
+                    let ray_dir = Vec3::new(world_ray.x, world_ray.y, world_ray.z).normalize();
+
+                    let ray_origin = self.player.get_head_pos();
+
+                    if let Some(hit) = self.world.raycast_block(ray_origin, ray_dir, 10.0) {
+                        match button {
+                            MouseButton::Left => {
+                                self.world.set_block(hit.block_pos, 0, self.gl.as_ref().unwrap());
+                            }
+
+                            MouseButton::Right => {
+                                self.world.set_block(hit.prev_block_pos, 1, self.gl.as_ref().unwrap());
+                            },
+
+                            _ => ()
+                        }
+                    }
                 }
             }
 
@@ -202,8 +231,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
                 let window = self.window.as_ref().unwrap();
                 unsafe {gl.viewport(0, 0, window.inner_size().width as i32, window.inner_size().height as i32);}
 
-                let aspect_ratio = window.inner_size().width as f32 / window.inner_size().height as f32;
-                let projection = Mat4::perspective_rh_gl(90.0f32.to_radians(), aspect_ratio, 0.1, 100.0);
+                let projection = Mat4::perspective_rh_gl(POV.to_radians(), (window.inner_size().width as f32 / window.inner_size().height as f32), 0.1, 100.0);
                 let view = Mat4::look_at_rh(self.player.get_head_pos(), self.player.get_head_pos() + self.player.get_camera_front(), self.player.get_camera_up());
                 let pv = projection * view;
 

@@ -98,6 +98,8 @@ impl Chunk {
     }
 
     pub fn reload_chunk(&mut self, gl: &Context){
+        //TODO: Only reload changed blocks and not whole chunk
+
         self.vertices = Some(Vec::new());
         self.indices = Some(Vec::new());
 
