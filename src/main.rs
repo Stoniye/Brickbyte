@@ -2,7 +2,7 @@ mod world;
 
 use crate::world::player::Player;
 use crate::world::world::World;
-use glam::{IVec2, IVec3, Mat4, Vec2, Vec3, Vec4};
+use glam::{IVec2, Mat4, Vec3, Vec4};
 use glow::{Context, HasContext, Program};
 use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
 use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentGlContext, PossiblyCurrentContext};
@@ -180,7 +180,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     let window = self.window.as_ref().unwrap();
                     let size = window.inner_size();
 
-                    let projection = Mat4::perspective_rh_gl(POV.to_radians(), (size.width as f32 / size.height as f32), 0.1, 100.0);
+                    let projection = Mat4::perspective_rh_gl(POV.to_radians(), size.width as f32 / size.height as f32, 0.1, 100.0);
                     let view = Mat4::look_at_rh(self.player.get_head_pos(), self.player.get_head_pos() + self.player.get_camera_front(), self.player.get_camera_up());
 
                     let ndc = Vec4::new((2.0 * (size.width as f32 / 2.0)) / size.width as f32 - 1.0, 1.0 - (2.0 * (size.height as f32 / 2.0)) / size.height as f32, -1.0, 1.0);
@@ -231,7 +231,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
                 let window = self.window.as_ref().unwrap();
                 unsafe {gl.viewport(0, 0, window.inner_size().width as i32, window.inner_size().height as i32);}
 
-                let projection = Mat4::perspective_rh_gl(POV.to_radians(), (window.inner_size().width as f32 / window.inner_size().height as f32), 0.1, 100.0);
+                let projection = Mat4::perspective_rh_gl(POV.to_radians(), window.inner_size().width as f32 / window.inner_size().height as f32, 0.1, 100.0);
                 let view = Mat4::look_at_rh(self.player.get_head_pos(), self.player.get_head_pos() + self.player.get_camera_front(), self.player.get_camera_up());
                 let pv = projection * view;
 
