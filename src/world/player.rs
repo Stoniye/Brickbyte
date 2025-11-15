@@ -3,7 +3,7 @@ use glam::{IVec3, Vec3};
 use std::collections::HashSet;
 use winit::keyboard::KeyCode;
 
-const PLAYER_HEIGHT: u8 = 2;
+const PLAYER_HEIGHT: f32 = 1.8;
 const MOUSE_SENS: f32 = 0.04;
 const GRAVITY: f32 = 9.81;
 const JUMP_STRENGTH: f32 = 5.0;
@@ -63,8 +63,49 @@ impl Player {
             move_dir += speed * camera_right;
         }
 
-        new_pos += Vec3::new(0.0, self.vertical_velocity * delta_time, 0.0);
-        new_pos += move_dir; //TODO: Check sideways and upward collisions
+        //TODO: The collision detection is a bit buggy and sloppy, needs improvement
+
+        if move_dir.x != 0.0 {
+
+            let mut offset: f32 = 0.5;
+            
+            if move_dir.x < 0.0 {
+                offset = -0.5;
+            }
+
+            let block_foot: IVec3 = IVec3::new((self.pos.x + offset).floor() as i32, (self.pos.y + 0.5).floor() as i32, self.pos.z.floor() as i32);
+            let block_head: IVec3 = IVec3::new((self.pos.x + offset).floor() as i32, (self.pos.y + 1.5).floor() as i32, self.pos.z.floor() as i32);
+            
+            if self.is_block_at(block_head, world) || self.is_block_at(block_foot, world) {
+                move_dir.x = 0.0;
+            }
+        }
+
+        if self.vertical_velocity > 0.0 {
+            let block_head: IVec3 = IVec3::new(self.pos.x.floor() as i32, (self.pos.y + 2.5).floor() as i32, self.pos.z.floor() as i32);
+
+            if self.is_block_at(block_head, world) {
+                self.vertical_velocity = 0.0;
+            }
+        }
+
+        if move_dir.z != 0.0 {
+
+            let mut offset: f32 = 0.5;
+
+            if move_dir.z < 0.0 {
+                offset = -0.5;
+            }
+
+            let block_foot: IVec3 = IVec3::new(self.pos.x.floor() as i32, (self.pos.y + 0.5).floor() as i32, (self.pos.z + offset).floor() as i32);
+            let block_head: IVec3 = IVec3::new(self.pos.x.floor() as i32, (self.pos.y + 1.5).floor() as i32, (self.pos.z + offset).floor() as i32);
+
+            if self.is_block_at(block_head, world) || self.is_block_at(block_foot, world) {
+                move_dir.z = 0.0;
+            }
+        }
+
+        new_pos += Vec3::new(0.0, self.vertical_velocity * delta_time, 0.0) + move_dir;
 
         self.pos = new_pos;
     }
