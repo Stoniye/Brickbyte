@@ -1,12 +1,12 @@
 use glam::{IVec2, IVec3, Mat4, Vec2, Vec3};
 use glow::{Context, HasContext, NativeBuffer, NativeTexture, NativeVertexArray, Program};
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
 use rand::Rng;
+use std::collections::HashMap;
 
 pub const CHUNK_DIMENSION: u8 = 16;
 pub const CHUNK_HEIGHT: u8 = 100;
+
+static TEXTURE_ATLAS: &[u8] = include_bytes!("../../res/atlas/textureAtlas.raw");
 
 pub struct Chunk {
     blocks: HashMap<IVec3, u8>,
@@ -57,11 +57,7 @@ impl Chunk {
             let texture: NativeTexture = gl.create_texture().expect("Failed to create texture var");
             gl.bind_texture(glow::TEXTURE_2D, Some(texture));
 
-            let mut file: File = File::open("res/atlas/textureAtlas.raw").expect("Failed to open raw texture file");
-            let byte_len: usize = 256 * 256 * 4;
-
-            let mut buffer:Vec<u8> = vec![0u8; byte_len];
-            file.read_exact(&mut buffer).expect("Failed to read file");
+            let buffer: Vec<u8> = TEXTURE_ATLAS.to_vec();
 
             let mut floats: Vec<f32> = Vec::with_capacity(buffer.len());
             for pixel in buffer.chunks_exact(4) {

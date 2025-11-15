@@ -10,7 +10,6 @@ use glutin::display::{Display, GlDisplay};
 use glutin::surface::{GlSurface, Surface, SurfaceAttributesBuilder, WindowSurface};
 use std::collections::HashSet;
 use std::ffi::CString;
-use std::fs::read_to_string;
 use std::num::NonZeroU32;
 use std::time::Instant;
 use winit::dpi::PhysicalSize;
@@ -21,6 +20,9 @@ use winit::raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use winit::window::{CursorGrabMode, Window, WindowId};
 
 const POV: f32 = 90.0;
+
+const VERTEX_SHADER: &str = include_str!("shader/vertex.glsl");
+const FRAGMENT_SHADER: &str = include_str!("shader/fragment.glsl");
 
 struct Brickbyte{
     window: Option<Window>,
@@ -80,15 +82,9 @@ impl Brickbyte {
     fn init_shader_and_buffers(&mut self) {
         let gl = self.gl.as_ref().unwrap();
 
-        let vertex_shader_src = match read_to_string("src/shader/vertex.glsl") {
-            Ok(src) => src,
-            Err(e) => { panic!("Error reading vertex shader: {}", e); }
-        };
+        let vertex_shader_src = VERTEX_SHADER;
 
-        let fragment_shader_src = match read_to_string("src/shader/fragment.glsl") {
-            Ok(src) => src,
-            Err(e) => { panic!("Error reading fragment shader: {}", e); }
-        };
+        let fragment_shader_src = FRAGMENT_SHADER;
 
         unsafe {
             let vertex_shader = gl.create_shader(glow::VERTEX_SHADER).unwrap();
