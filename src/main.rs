@@ -204,7 +204,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
 
                 let aspect_ratio = window.inner_size().width as f32 / window.inner_size().height as f32;
                 let projection = Mat4::perspective_rh_gl(90.0f32.to_radians(), aspect_ratio, 0.1, 100.0);
-                let view = Mat4::look_at_rh(self.player.get_pos(), self.player.get_pos() + self.player.get_camera_front(), self.player.get_camera_up());
+                let view = Mat4::look_at_rh(self.player.get_head_pos(), self.player.get_head_pos() + self.player.get_camera_front(), self.player.get_camera_up());
                 let pv = projection * view;
 
                 unsafe {
@@ -231,7 +231,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
         let now = Instant::now();
         let delta_time = now.duration_since(self.last_update).as_secs_f32();
         self.last_update = now;
-        self.player.update_pos(delta_time, self.keys_pressed.clone());
+        self.player.update_pos(delta_time, self.keys_pressed.clone(), &self.world);
 
         if let Some(window) = &self.window{
             window.request_redraw();

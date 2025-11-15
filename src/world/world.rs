@@ -30,11 +30,28 @@ impl World {
         }
     }
 
-    pub fn set_block(&mut self, world_pos: IVec3, gl: &Context) {
-        let chunk_pos: IVec2 = IVec2::new(((world_pos.x / CHUNK_DIMENSION as i32) as f32).floor() as i32, ((world_pos.z / CHUNK_DIMENSION as i32) as f32).floor() as i32);
-        let pos: IVec3 = IVec3::new(((world_pos.x % CHUNK_DIMENSION as i32) + CHUNK_DIMENSION as i32) % CHUNK_DIMENSION as i32, world_pos.y, ((world_pos.z % CHUNK_DIMENSION as i32) + CHUNK_DIMENSION as i32) % CHUNK_DIMENSION as i32);
+    fn world_to_local(world_pos: IVec3) -> (IVec2, IVec3) {
+        let chunk_pos = IVec2::new(world_pos.x.div_euclid(CHUNK_DIMENSION as i32), world_pos.z.div_euclid(CHUNK_DIMENSION as i32));
+        let block_pos = IVec3::new(world_pos.x.rem_euclid(CHUNK_DIMENSION as i32), world_pos.y, world_pos.z.rem_euclid(CHUNK_DIMENSION as i32));
 
-        self.chunks.get_mut(&chunk_pos).unwrap().set_block(pos, 0);
+        (chunk_pos, block_pos)
+    }
+
+
+    pub fn get_block(&self, world_pos: IVec3) -> u8 {
+        let (chunk_pos, block_pos) = Self::world_to_local(world_pos);
+
+        if self.chunks.contains_key(&chunk_pos) {
+            return self.chunks.get(&chunk_pos).unwrap().get_block(block_pos);
+        }
+
+        0
+    }
+
+    pub fn set_block(&mut self, world_pos: IVec3, gl: &Context) {
+        let (chunk_pos, block_pos) = Self::world_to_local(world_pos);
+
+        self.chunks.get_mut(&chunk_pos).unwrap().set_block(block_pos, 0);
         self.chunks.get_mut(&chunk_pos).unwrap().reload_chunk(gl);
     }
 }
