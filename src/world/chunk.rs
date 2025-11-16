@@ -6,7 +6,7 @@ use std::collections::HashMap;
 pub const CHUNK_DIMENSION: u8 = 16;
 pub const CHUNK_HEIGHT: u8 = 100;
 
-static TEXTURE_ATLAS: &[u8] = include_bytes!("../../res/atlas/textureAtlas.raw");
+static TEXTURE_ATLAS: &[u8] = include_bytes!("../../res/atlas/block_atlas.raw");
 
 pub struct Chunk {
     blocks: HashMap<IVec3, u8>,
