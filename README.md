@@ -26,4 +26,6 @@ Stable builds will be published regularly in the [Releases tab](https://gitlab.c
 
 # Screenshots
 
-Nothing to see yet
+<p align="center">
+  <img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/brickbyte.gif" width="800" alt="brickbyte"/>
+</p>

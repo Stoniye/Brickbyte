@@ -7,8 +7,8 @@ const PLAYER_HEIGHT: f32 = 1.8;
 const MOUSE_SENS: f32 = 0.04;
 const GRAVITY: f32 = 9.81;
 const JUMP_STRENGTH: f32 = 5.0;
-const SPEED: f32 = 0.03;
-const SPRINT_SPEED: f32 = 0.05;
+const SPEED: f32 = 0.07;
+const SPRINT_SPEED: f32 = 0.1;
 
 pub struct Player {
     pos: Vec3,
