@@ -22,7 +22,7 @@ That's it, you're ready to go!
 
 # Releases
 
-Stable builds will be published regularly in the [Releases tab](https://github.com/Stoniye/Brickbyte/releases) for download.
+Stable builds will be published regularly in the [Releases tab](https://gitlab.com/Stoniye/brickbyte/-/releases) for download.
 
 # Screenshots
 
