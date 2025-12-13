@@ -1,12 +1,13 @@
+#![windows_subsystem = "windows"]
 mod world;
 
 use crate::world::player::Player;
 use crate::world::world::World;
-use glam::{IVec2, Mat4, Vec3, Vec4};
+use glam::{IVec2, IVec3, Mat4, Vec3, Vec4};
 use glow::{Context, HasContext, Program};
 use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
 use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentGlContext, PossiblyCurrentContext};
-use glutin::display::{Display, GlDisplay};
+use glutin::display::{Display, DisplayApiPreference, GlDisplay};
 use glutin::surface::{GlSurface, Surface, SurfaceAttributesBuilder, WindowSurface};
 use std::collections::HashSet;
 use std::ffi::CString;
@@ -55,7 +56,14 @@ impl Brickbyte {
 
     fn init_gl(&mut self, window: &Window) {
         let raw_display = window.display_handle().unwrap().as_raw();
-        let gl_display = unsafe {Display::new(raw_display, glutin::display::DisplayApiPreference::Egl).unwrap()};
+
+        #[cfg(target_os = "windows")]
+        let preference = DisplayApiPreference::Wgl(None);
+
+        #[cfg(not(target_os = "windows"))]
+        let preference = DisplayApiPreference::Egl;
+
+        let gl_display = unsafe {Display::new(raw_display, preference).unwrap()};
         self.gl_display = Some(gl_display);
 
         let template = ConfigTemplateBuilder::new().with_surface_type(ConfigSurfaceTypes::WINDOW).with_alpha_size(8).build();
@@ -107,8 +115,8 @@ impl Brickbyte {
             self.program = Some(program);
         }
 
-        const X_CHUNKS: i8 = 2;
-        const Y_CHUNKS: i8 = 2;
+        const X_CHUNKS: u8 = 2;
+        const Y_CHUNKS: u8 = 2;
 
         let gl: &Context = &self.gl.as_mut().unwrap();
 
@@ -177,7 +185,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     let size = window.inner_size();
 
                     let projection = Mat4::perspective_rh_gl(POV.to_radians(), size.width as f32 / size.height as f32, 0.1, 100.0);
-                    let view = Mat4::look_at_rh(self.player.get_head_pos(), self.player.get_head_pos() + self.player.get_camera_front(), self.player.get_camera_up());
+                    let view = Mat4::look_at_rh(self.player.get_head_pos(), self.player.get_head_pos() + self.player.get_camera_front(), Vec3::Y);
 
                     let ndc = Vec4::new((2.0 * (size.width as f32 / 2.0)) / size.width as f32 - 1.0, 1.0 - (2.0 * (size.height as f32 / 2.0)) / size.height as f32, -1.0, 1.0);
 
@@ -196,7 +204,13 @@ impl winit::application::ApplicationHandler for Brickbyte {
                             }
 
                             MouseButton::Right => {
-                                self.world.set_block(hit.prev_block_pos, 1, self.gl.as_ref().unwrap());
+                                let block_pos = hit.prev_block_pos;
+                                let player_pos: IVec3 = IVec3::new(self.player.get_pos().x.floor() as i32, self.player.get_pos().y.ceil() as i32, self.player.get_pos().z.floor() as i32);
+                                let player_head_pos: IVec3 = IVec3::new(self.player.get_head_pos().x.floor() as i32, self.player.get_head_pos().y.floor() as i32, self.player.get_head_pos().z.floor() as i32);
+
+                                if block_pos != player_pos && block_pos != player_head_pos {
+                                    self.world.set_block(hit.prev_block_pos, 1, self.gl.as_ref().unwrap());
+                                }
                             },
 
                             _ => ()
@@ -228,7 +242,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
                 unsafe {gl.viewport(0, 0, window.inner_size().width as i32, window.inner_size().height as i32);}
 
                 let projection = Mat4::perspective_rh_gl(POV.to_radians(), window.inner_size().width as f32 / window.inner_size().height as f32, 0.1, 100.0);
-                let view = Mat4::look_at_rh(self.player.get_head_pos(), self.player.get_head_pos() + self.player.get_camera_front(), self.player.get_camera_up());
+                let view = Mat4::look_at_rh(self.player.get_head_pos(), self.player.get_head_pos() + self.player.get_camera_front(), Vec3::Y);
                 let pv = projection * view;
 
                 unsafe {

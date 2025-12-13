@@ -6,16 +6,17 @@ use std::collections::HashMap;
 pub const CHUNK_DIMENSION: u8 = 16;
 pub const CHUNK_HEIGHT: u8 = 100;
 
-static TEXTURE_ATLAS: &[u8] = include_bytes!("../../res/atlas/block_atlas.raw");
+const TEXTURE_ATLAS: &[u8] = include_bytes!("../../res/atlas/block_atlas.raw");
 
 pub struct Chunk {
     blocks: HashMap<IVec3, u8>,
     position: IVec2,
     shader: Program,
-    vertex_buffer_object: Option<NativeBuffer>,
-    vertex_array_object: Option<NativeVertexArray>,
     vertices: Option<Vec<f32>>,
-    indices: Option<Vec<i32>>
+    indices: Option<Vec<i32>>,
+    vertex_array_object: Option<NativeVertexArray>,
+    vertex_buffer_object: Option<NativeBuffer>,
+    element_buffer_object: Option<NativeBuffer>
 }
 
 impl Chunk {
@@ -24,10 +25,11 @@ impl Chunk {
             blocks: HashMap::new(),
             position,
             shader,
-            vertex_buffer_object: None,
-            vertex_array_object: None,
             vertices: None,
-            indices: None
+            indices: None,
+            vertex_array_object: None,
+            vertex_buffer_object: None,
+            element_buffer_object: None
         };
         chunk.initialize(gl);
 
@@ -95,6 +97,18 @@ impl Chunk {
 
     pub fn reload_chunk(&mut self, gl: &Context){
         //TODO: Only reload changed blocks and not whole chunk
+
+        unsafe {
+            if let Some(vao) = self.vertex_array_object {
+                gl.delete_vertex_array(vao);
+            }
+            if let Some(vbo) = self.vertex_buffer_object {
+                gl.delete_buffer(vbo);
+            }
+            if let Some(ebo) = self.element_buffer_object {
+                gl.delete_buffer(ebo);
+            }
+        }
 
         self.vertices = Some(Vec::new());
         self.indices = Some(Vec::new());
@@ -247,6 +261,7 @@ impl Chunk {
 
             self.vertex_array_object = Some(vao);
             self.vertex_buffer_object = Some(vbo);
+            self.element_buffer_object = Some(ebo);
         }
     }
 

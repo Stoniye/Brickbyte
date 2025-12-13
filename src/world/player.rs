@@ -5,49 +5,58 @@ use winit::keyboard::KeyCode;
 
 const PLAYER_HEIGHT: f32 = 1.8;
 const MOUSE_SENS: f32 = 0.04;
-const GRAVITY: f32 = 9.81;
-const JUMP_STRENGTH: f32 = 5.0;
-const SPEED: f32 = 0.07;
-const SPRINT_SPEED: f32 = 0.1;
+const GRAVITY: u8 = 13;
+const JUMP_STRENGTH: u8 = 6;
+const SPEED: u8 = 4;
+const SPRINT_SPEED: u8 = 6;
 
 pub struct Player {
     pos: Vec3,
     camera_front: Vec3,
-    camera_up: Vec3,
     yaw: f32,
     pitch: f32,
-    vertical_velocity: f32
+    vertical_velocity: f32,
+    was_grounded: bool
 }
 
 impl Player {
     pub fn new() -> Self {
         Player {
-            pos: Vec3::new(2.0, 18.0, 2.0),
+            pos: Vec3::new(2.0, 17.5, 2.0),
             camera_front: Vec3::new(0.0, 0.0, -1.0),
-            camera_up: Vec3::Y,
             yaw: -90.0,
             pitch: 0.0,
-            vertical_velocity: 0.0
+            vertical_velocity: 0.0,
+            was_grounded: false
         }
     }
 
     pub fn update_pos(&mut self, delta_time: f32, keys_pressed: HashSet<KeyCode>, world: &World) {
+
+        if delta_time >= 0.3 { return; } // On game begin delta_time can be very big, which leads to weird behavior
+
         let is_grounded: bool = self.is_block_at(IVec3::new(self.pos.x.floor() as i32, self.pos.y.floor() as i32, self.pos.z.floor() as i32), world);
-        let speed: f32 = if keys_pressed.contains(&KeyCode::ShiftLeft) {SPRINT_SPEED} else {SPEED};
-        let camera_right: Vec3 = self.camera_front.cross(self.camera_up).normalize();
-        let camera_horizontal_front: Vec3 = Vec3::new(self.camera_front.x, 0.0, self.camera_front.z);
+        let speed: f32 = if keys_pressed.contains(&KeyCode::ShiftLeft) {SPRINT_SPEED} else {SPEED} as f32 * delta_time;
+        let camera_right: Vec3 = self.camera_front.cross(Vec3::Y).normalize();
+        let camera_horizontal_front: Vec3 = Vec3::new(self.camera_front.x, 0.0, self.camera_front.z).normalize();
 
         let mut move_dir: Vec3 = Vec3::ZERO;
         let mut new_pos: Vec3 = self.pos;
 
+        if !self.was_grounded && is_grounded && self.vertical_velocity <= -10.0 {
+            //TODO: Dead from fall damage
+        }
+
+        self.was_grounded = is_grounded;
+
         if !is_grounded {
-            self.vertical_velocity -= GRAVITY * delta_time;
+            self.vertical_velocity -= GRAVITY as f32 * delta_time;
         } else {
             self.vertical_velocity = 0.0;
         }
 
         if keys_pressed.contains(&KeyCode::Space) && is_grounded {
-            self.vertical_velocity += JUMP_STRENGTH;
+            self.vertical_velocity += JUMP_STRENGTH as f32;
         }
 
         if keys_pressed.contains(&KeyCode::KeyW){
@@ -130,6 +139,4 @@ impl Player {
     pub fn get_head_pos(&self) -> Vec3 {Vec3::new(self.pos.x, self.pos.y + PLAYER_HEIGHT, self.pos.z)}
 
     pub fn get_camera_front(&self) -> Vec3 {self.camera_front}
-
-    pub fn get_camera_up(&self) -> Vec3 {self.camera_up}
 }
