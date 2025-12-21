@@ -3,6 +3,8 @@ mod world;
 
 use crate::world::player::Player;
 use crate::world::world::World;
+use egui::{Color32, Stroke};
+use egui_winit::State;
 use glam::{IVec2, IVec3, Mat4, Vec3, Vec4};
 use glow::{Context, HasContext, Program};
 use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
@@ -12,6 +14,7 @@ use glutin::surface::{GlSurface, Surface, SurfaceAttributesBuilder, WindowSurfac
 use std::collections::HashSet;
 use std::ffi::CString;
 use std::num::NonZeroU32;
+use std::sync::Arc;
 use std::time::Instant;
 use winit::dpi::PhysicalSize;
 use winit::event::{DeviceEvent, ElementState, KeyEvent, MouseButton, WindowEvent};
@@ -30,7 +33,10 @@ struct Brickbyte{
     gl_display: Option<Display>,
     gl_context: Option<PossiblyCurrentContext>,
     gl_surface: Option<Surface<WindowSurface>>,
-    gl: Option<Context>,
+    gl: Option<Arc<Context>>,
+    egui_state: Option<State>,
+    egui_context: Option<egui::Context>,
+    egui_painter: Option<egui_glow::Painter>,
     program: Option<Program>,
     keys_pressed: HashSet<KeyCode>,
     last_update: Instant,
@@ -46,6 +52,9 @@ impl Brickbyte {
             gl_context: None,
             gl_surface: None,
             gl: None,
+            egui_state: None,
+            egui_context: None,
+            egui_painter: None,
             program: None,
             keys_pressed: HashSet::new(),
             last_update: Instant::now(),
@@ -82,9 +91,16 @@ impl Brickbyte {
         self.gl_context = Some(gl_context);
 
         let gl = unsafe {Context::from_loader_function(|s| {self.gl_display.as_ref().unwrap().get_proc_address(&CString::new(s).unwrap()) as *const _ })};
-        self.gl = Some(gl);
+        self.gl = Some(Arc::new(gl));
 
-        unsafe {self.gl.as_ref().unwrap().enable(glow::DEPTH_TEST)};
+        let gl = self.gl.as_ref().unwrap();
+        let egui_ctx = egui::Context::default();
+        let egui_painter = egui_glow::Painter::new(gl.clone(), "", None, true).expect("Failed to create egui painter");
+        let egui_state = State::new(egui_ctx.clone(), egui::ViewportId::ROOT, &window, None, None, None);
+
+        self.egui_state = Some(egui_state);
+        self.egui_painter = Some(egui_painter);
+        self.egui_context = Some(egui_ctx);
     }
 
     fn init_shader_and_buffers(&mut self) {
@@ -246,10 +262,40 @@ impl winit::application::ApplicationHandler for Brickbyte {
                 let pv = projection * view;
 
                 unsafe {
+                    gl.enable(glow::DEPTH_TEST);
+                    gl.disable(glow::SCISSOR_TEST);
+                    gl.disable(glow::BLEND);
+
                     gl.clear_color(0.5, 0.7, 0.9, 1.0);
                     gl.clear(glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT);
 
                     self.world.render_world(gl, pv);
+                }
+
+                if let(Some(ctx), Some(state), Some(painter)) = (self.egui_context.as_ref(), self.egui_state.as_mut(), self.egui_painter.as_mut()) {
+                    let raw_input = state.take_egui_input(window);
+                    ctx.begin_pass(raw_input);
+
+                    let painter_layer = ctx.layer_painter(egui::LayerId::new(egui::Order::Foreground, egui::Id::new("crosshair")));
+                    let center = ctx.content_rect().center();
+                    let size = 10.0;
+                    let color = Color32::WHITE;
+                    let stroke = Stroke::new(2.0, color);
+
+                    painter_layer.line_segment([center - egui::vec2(size, 0.0), center + egui::vec2(size, 0.0)], stroke);
+                    painter_layer.line_segment([center - egui::vec2(0.0, size), center + egui::vec2(0.0, size)], stroke);
+
+                    let full_output = ctx.end_pass();
+
+                    state.handle_platform_output(window, full_output.platform_output);
+
+                    let primitives = ctx.tessellate(full_output.shapes, full_output.pixels_per_point);
+
+                    painter.paint_and_update_textures([window.inner_size().width, window.inner_size().height], full_output.pixels_per_point, &primitives, &full_output.textures_delta);
+
+                    for (id, image_delta) in full_output.textures_delta.set {
+                        painter.set_texture(id, &image_delta);
+                    }
                 }
 
                 self.gl_surface.as_ref().unwrap().swap_buffers(self.gl_context.as_ref().unwrap()).unwrap();

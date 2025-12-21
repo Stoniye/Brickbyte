@@ -22,7 +22,9 @@ That's it, you're ready to go!
 
 # Releases
 
-Stable builds will be published regularly in the [Releases tab](https://gitlab.com/Stoniye/brickbyte/-/releases) for download.
+Stable builds are published regularly in the [Releases tab](https://gitlab.com/Stoniye/brickbyte/-/releases).
+
+Binaries are generated through GitLab Pipelines to ensure a transparent build process, so you can be confident that each release corresponds exactly to the source code in this repository.
 
 # Screenshots
 

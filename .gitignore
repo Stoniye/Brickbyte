@@ -4,6 +4,7 @@ target
 **/*.rs.bk
 *.pdb
 **/mutants.out*/
+*.lock
 
 # RustRover
 .idea/

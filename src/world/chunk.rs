@@ -16,7 +16,8 @@ pub struct Chunk {
     indices: Option<Vec<i32>>,
     vertex_array_object: Option<NativeVertexArray>,
     vertex_buffer_object: Option<NativeBuffer>,
-    element_buffer_object: Option<NativeBuffer>
+    element_buffer_object: Option<NativeBuffer>,
+    textures: Option<NativeTexture>
 }
 
 impl Chunk {
@@ -29,7 +30,8 @@ impl Chunk {
             indices: None,
             vertex_array_object: None,
             vertex_buffer_object: None,
-            element_buffer_object: None
+            element_buffer_object: None,
+            textures: None
         };
         chunk.initialize(gl);
 
@@ -54,7 +56,7 @@ impl Chunk {
         }
     }
 
-    fn load_textures(gl: &Context) {
+    fn load_textures(gl: &Context) -> NativeTexture {
         unsafe {
             let texture: NativeTexture = gl.create_texture().expect("Failed to create texture var");
             gl.bind_texture(glow::TEXTURE_2D, Some(texture));
@@ -75,6 +77,8 @@ impl Chunk {
 
             gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::REPEAT as i32);
             gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_T, glow::REPEAT as i32);
+
+            texture
         }
     }
 
@@ -267,6 +271,8 @@ impl Chunk {
 
     pub fn render(&self, gl: &Context, pv: Mat4) {
         unsafe {
+            gl.bind_texture(glow::TEXTURE_2D, Some(self.textures.unwrap()));
+
             let model = Mat4::from_translation(Vec3::new((self.position.x as f32) * CHUNK_DIMENSION as f32, 0.0, (self.position.y as f32) * CHUNK_DIMENSION as f32));
             let mvp = pv * model;
 
@@ -293,6 +299,6 @@ impl Chunk {
 
     pub fn initialize(&mut self, gl: &Context) {
         Self::initialize_blocks(self);
-        Self::load_textures(gl);
+        self.textures = Some(Self::load_textures(gl));
     }
 }
