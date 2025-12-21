@@ -16,7 +16,8 @@ pub struct Player {
     yaw: f32,
     pitch: f32,
     vertical_velocity: f32,
-    was_grounded: bool
+    was_grounded: bool,
+    health: u8
 }
 
 impl Player {
@@ -27,7 +28,8 @@ impl Player {
             yaw: -90.0,
             pitch: 0.0,
             vertical_velocity: 0.0,
-            was_grounded: false
+            was_grounded: false,
+            health: 8
         }
     }
 
@@ -43,8 +45,12 @@ impl Player {
         let mut move_dir: Vec3 = Vec3::ZERO;
         let mut new_pos: Vec3 = self.pos;
 
-        if !self.was_grounded && is_grounded && self.vertical_velocity <= -10.0 {
-            //TODO: Dead from fall damage
+        if !self.was_grounded && is_grounded {
+            let damage: f32 = (-self.vertical_velocity * 0.5) - 5.0;
+
+            if damage > 0.0 {
+                self.damage(damage.floor() as u8);
+            }
         }
 
         self.was_grounded = is_grounded;
@@ -77,14 +83,14 @@ impl Player {
         if move_dir.x != 0.0 {
 
             let mut offset: f32 = 0.5;
-            
+
             if move_dir.x < 0.0 {
                 offset = -0.5;
             }
 
             let block_foot: IVec3 = IVec3::new((self.pos.x + offset).floor() as i32, (self.pos.y + 0.5).floor() as i32, self.pos.z.floor() as i32);
             let block_head: IVec3 = IVec3::new((self.pos.x + offset).floor() as i32, (self.pos.y + 1.5).floor() as i32, self.pos.z.floor() as i32);
-            
+
             if self.is_block_at(block_head, world) || self.is_block_at(block_foot, world) {
                 move_dir.x = 0.0;
             }
@@ -139,4 +145,14 @@ impl Player {
     pub fn get_head_pos(&self) -> Vec3 {Vec3::new(self.pos.x, self.pos.y + PLAYER_HEIGHT, self.pos.z)}
 
     pub fn get_camera_front(&self) -> Vec3 {self.camera_front}
+    
+    pub fn get_health(&self) -> u8 {self.health}
+
+    pub fn damage(&mut self, damage: u8) {
+        if (self.health as i8 - damage as i8) <= 0 {
+            self.health = 0;
+        } else {
+            self.health -= damage
+        }
+    }
 }

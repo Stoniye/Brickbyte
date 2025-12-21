@@ -1,6 +1,6 @@
 [package]
 name = "Brickbyte"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2024"
 description = "A 3D Survival Voxel Game with OpenGL in Rust"
 authors = ["Elias Steininger <https://stonie.dev>"]

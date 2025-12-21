@@ -1,7 +1,7 @@
 use crate::world::chunk::{Chunk, CHUNK_DIMENSION};
 use glam::{IVec2, IVec3, Mat4, Vec3};
 use std::collections::HashMap;
-use glow::{Context, Program};
+use glow::{Context, NativeTexture, Program};
 
 pub struct World {
     chunks: HashMap<IVec2, Chunk>,
@@ -18,48 +18,47 @@ impl World {
             chunks: HashMap::new()
         }
     }
-
-    pub fn insert_chunk(&mut self, pos: IVec2, shader: Program, gl: &Context) {
-        self.chunks.insert(IVec2::new(pos.x, pos.y), Chunk::new(IVec2::new(pos.x, pos.y), shader, gl));
+    
+    pub fn insert_chunk(&mut self, pos: IVec2, shader: Program) {
+        self.chunks.insert(IVec2::new(pos.x, pos.y), Chunk::new(IVec2::new(pos.x, pos.y), shader));
     }
-
+    
     pub fn reload_world(&mut self, gl: &Context) {
         for (_pos, chunk) in self.chunks.iter_mut(){
             chunk.reload_chunk(gl);
         }
     }
-
-    pub fn render_world(&mut self, gl: &Context, pv: Mat4) {
+    
+    pub fn render_world(&mut self, gl: &Context, pv: Mat4, texture: Option<NativeTexture>) {
         for (_pos, chunk) in &self.chunks {
-            chunk.render(gl, pv);
+            chunk.render(gl, pv, texture);
         }
     }
-
+    
     fn world_to_local(world_pos: IVec3) -> (IVec2, IVec3) {
         let chunk_pos = IVec2::new(world_pos.x.div_euclid(CHUNK_DIMENSION as i32), world_pos.z.div_euclid(CHUNK_DIMENSION as i32));
         let block_pos = IVec3::new(world_pos.x.rem_euclid(CHUNK_DIMENSION as i32), world_pos.y, world_pos.z.rem_euclid(CHUNK_DIMENSION as i32));
-
+        
         (chunk_pos, block_pos)
     }
-
-
+    
     pub fn get_block(&self, world_pos: IVec3) -> u8 {
         let (chunk_pos, block_pos) = Self::world_to_local(world_pos);
-
+        
         if self.chunks.contains_key(&chunk_pos) {
             return self.chunks.get(&chunk_pos).unwrap().get_block(block_pos);
         }
-
+        
         0
     }
-
+    
     pub fn set_block(&mut self, world_pos: IVec3, id: u8, gl: &Context) {
         let (chunk_pos, block_pos) = Self::world_to_local(world_pos);
 
         self.chunks.get_mut(&chunk_pos).unwrap().set_block(block_pos, id);
         self.chunks.get_mut(&chunk_pos).unwrap().reload_chunk(gl);
     }
-
+    
     pub fn raycast_block(&self, origin: Vec3, direction: Vec3, max_distance: f32) -> Option<BlockRaycast> {
         let mut pos = origin.floor().as_ivec3();
         let step = IVec3::new(
@@ -77,10 +76,10 @@ impl World {
             if direction.y < 0.0 { (origin.y - pos.y as f32) / direction.y } else { ((pos.y + 1) as f32 - origin.y) / direction.y },
             if direction.z < 0.0 { (origin.z - pos.z as f32) / direction.z } else { ((pos.z + 1) as f32 - origin.z) / direction.z },
         ).abs();
-
+        
         let mut distance = 0.0;
         let mut face_normal = IVec3::ZERO;
-
+        
         while distance < max_distance {
             if self.get_block(pos) != 0 {
                 return Some(BlockRaycast {
@@ -88,7 +87,7 @@ impl World {
                     prev_block_pos: pos + face_normal
                 });
             }
-
+            
             if t_max.x < t_max.y && t_max.x < t_max.z {
                 pos.x += step.x;
                 distance = t_max.x;
@@ -106,7 +105,7 @@ impl World {
                 face_normal = IVec3::new(0, 0, -step.z);
             }
         }
-
+        
         None
     }
 }

@@ -6,7 +6,7 @@ use crate::world::world::World;
 use egui::{Color32, Stroke};
 use egui_winit::State;
 use glam::{IVec2, IVec3, Mat4, Vec3, Vec4};
-use glow::{Context, HasContext, Program};
+use glow::{Context, HasContext, NativeTexture, Program};
 use glutin::config::{ConfigSurfaceTypes, ConfigTemplateBuilder};
 use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentGlContext, PossiblyCurrentContext};
 use glutin::display::{Display, DisplayApiPreference, GlDisplay};
@@ -27,6 +27,8 @@ const POV: f32 = 90.0;
 
 const VERTEX_SHADER: &str = include_str!("shader/vertex.glsl");
 const FRAGMENT_SHADER: &str = include_str!("shader/fragment.glsl");
+const BLOCK_ATLAS: &[u8] = include_bytes!("../res/atlas/block_atlas.raw");
+const UI_ATLAS: &[u8] = include_bytes!("../res/atlas/ui_atlas.raw");
 
 struct Brickbyte{
     window: Option<Window>,
@@ -41,7 +43,11 @@ struct Brickbyte{
     keys_pressed: HashSet<KeyCode>,
     last_update: Instant,
     world: World,
-    player: Player
+    player: Player,
+    selected_hotbar_slot_index: u8,
+    egui_block_atlas_id: Option<egui::TextureId>,
+    egui_ui_atlas_id: Option<egui::TextureId>,
+    block_texture: Option<NativeTexture>
 }
 
 impl Brickbyte {
@@ -60,10 +66,16 @@ impl Brickbyte {
             last_update: Instant::now(),
             world: World::new(),
             player: Player::new(),
+            selected_hotbar_slot_index: 0,
+            egui_block_atlas_id: None,
+            egui_ui_atlas_id: None,
+            block_texture: None
         }
     }
 
     fn init_gl(&mut self, window: &Window) {
+
+        //gl
         let raw_display = window.display_handle().unwrap().as_raw();
 
         #[cfg(target_os = "windows")]
@@ -93,6 +105,7 @@ impl Brickbyte {
         let gl = unsafe {Context::from_loader_function(|s| {self.gl_display.as_ref().unwrap().get_proc_address(&CString::new(s).unwrap()) as *const _ })};
         self.gl = Some(Arc::new(gl));
 
+        //egui
         let gl = self.gl.as_ref().unwrap();
         let egui_ctx = egui::Context::default();
         let egui_painter = egui_glow::Painter::new(gl.clone(), "", None, true).expect("Failed to create egui painter");
@@ -101,6 +114,78 @@ impl Brickbyte {
         self.egui_state = Some(egui_state);
         self.egui_painter = Some(egui_painter);
         self.egui_context = Some(egui_ctx);
+
+
+        //Block Atlas
+        unsafe {
+            let texture: NativeTexture = gl.create_texture().expect("Failed to create texture var");
+            gl.bind_texture(glow::TEXTURE_2D, Some(texture));
+
+            let buffer: Vec<u8> = BLOCK_ATLAS.to_vec();
+
+            let mut floats: Vec<f32> = Vec::with_capacity(buffer.len());
+            for pixel in buffer.chunks_exact(4) {
+                let r = pixel[0] as f32 / 255.0;
+                let g = pixel[1] as f32 / 255.0;
+                let b = pixel[2] as f32 / 255.0;
+                let a = pixel[3] as f32 / 255.0;
+
+                floats.extend_from_slice(&[
+                    r * a,
+                    g * a,
+                    b * a,
+                    a
+                ]);
+            }
+
+            let bytes: &[u8] = {std::slice::from_raw_parts(floats.as_ptr() as *const u8, floats.len() * size_of::<f32>())};
+
+            gl.tex_image_2d(glow::TEXTURE_2D, 0, glow::RGBA32F as i32, 256, 256, 0, glow::RGBA, glow::FLOAT, glow::PixelUnpackData::Slice(Some(bytes)));
+
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MIN_FILTER, glow::NEAREST as i32);
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MAG_FILTER, glow::NEAREST as i32);
+
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::REPEAT as i32);
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_T, glow::REPEAT as i32);
+
+            self.block_texture = Some(texture);
+            self.egui_block_atlas_id = Some(self.egui_painter.as_mut().unwrap().register_native_texture(texture));
+        };
+
+        //UI Atlas
+        unsafe {
+            let texture: NativeTexture = gl.create_texture().expect("Failed to create texture var");
+            gl.bind_texture(glow::TEXTURE_2D, Some(texture));
+
+            let buffer: Vec<u8> = UI_ATLAS.to_vec();
+
+            let mut floats: Vec<f32> = Vec::with_capacity(buffer.len());
+            for pixel in buffer.chunks_exact(4) {
+                let r = pixel[0] as f32 / 255.0;
+                let g = pixel[1] as f32 / 255.0;
+                let b = pixel[2] as f32 / 255.0;
+                let a = pixel[3] as f32 / 255.0;
+
+                floats.extend_from_slice(&[
+                    r * a,
+                    g * a,
+                    b * a,
+                    a
+                ]);
+            }
+
+            let bytes: &[u8] = {std::slice::from_raw_parts(floats.as_ptr() as *const u8, floats.len() * size_of::<f32>())};
+
+            gl.tex_image_2d(glow::TEXTURE_2D, 0, glow::RGBA32F as i32, 256, 256, 0, glow::RGBA, glow::FLOAT, glow::PixelUnpackData::Slice(Some(bytes)));
+
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MIN_FILTER, glow::NEAREST as i32);
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MAG_FILTER, glow::NEAREST as i32);
+
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::REPEAT as i32);
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_T, glow::REPEAT as i32);
+
+            self.egui_ui_atlas_id = Some(self.egui_painter.as_mut().unwrap().register_native_texture(texture));
+        };
     }
 
     fn init_shader_and_buffers(&mut self) {
@@ -138,7 +223,7 @@ impl Brickbyte {
 
         for x in 0..X_CHUNKS {
             for y in 0..Y_CHUNKS {
-                self.world.insert_chunk(IVec2::new(x as i32, y as i32), self.program.unwrap(), gl);
+                self.world.insert_chunk(IVec2::new(x as i32, y as i32), self.program.unwrap());
             }
         }
 
@@ -180,7 +265,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
                 }
             }
 
-            WindowEvent::KeyboardInput {event: KeyEvent {physical_key: PhysicalKey::Code(key_code), state, .. }, .. } => {
+            WindowEvent::KeyboardInput {event: KeyEvent {physical_key: PhysicalKey::Code(key_code), state, ..}, ..} => {
                 match state {
                     ElementState::Pressed => {
                         self.keys_pressed.insert(key_code);
@@ -195,7 +280,7 @@ impl winit::application::ApplicationHandler for Brickbyte {
                 }
             }
 
-            WindowEvent::MouseInput { state, button, .. } => {
+            WindowEvent::MouseInput {state, button, ..} => {
                 if state == ElementState::Pressed {
                     let window = self.window.as_ref().unwrap();
                     let size = window.inner_size();
@@ -225,12 +310,38 @@ impl winit::application::ApplicationHandler for Brickbyte {
                                 let player_head_pos: IVec3 = IVec3::new(self.player.get_head_pos().x.floor() as i32, self.player.get_head_pos().y.floor() as i32, self.player.get_head_pos().z.floor() as i32);
 
                                 if block_pos != player_pos && block_pos != player_head_pos {
-                                    self.world.set_block(hit.prev_block_pos, 1, self.gl.as_ref().unwrap());
+                                    self.world.set_block(hit.prev_block_pos, self.selected_hotbar_slot_index + 1, self.gl.as_ref().unwrap());
                                 }
                             },
 
                             _ => ()
                         }
+                    }
+                }
+            }
+
+            WindowEvent::MouseWheel { delta, .. } => {
+                let mut delta_index: i8 = 0;
+
+                match delta {
+                    winit::event::MouseScrollDelta::LineDelta(_, y) => {
+                        if y >= 1.0 {delta_index = -1;}
+                        else if y <= -1.0 {delta_index = 1;}
+                    }
+                    winit::event::MouseScrollDelta::PixelDelta(pos) => {
+                        if pos.y >= 1.0 {delta_index = -1;}
+                        else if pos.y <= -1.0 {delta_index = 1;}
+                    }
+                }
+
+                if delta_index != 0 {
+                    let new_index = self.selected_hotbar_slot_index as i8 + delta_index;
+                    if new_index < 0 {
+                        self.selected_hotbar_slot_index = 8;
+                    } else if new_index > 8 {
+                        self.selected_hotbar_slot_index = 0;
+                    } else {
+                        self.selected_hotbar_slot_index = new_index as u8;
                     }
                 }
             }
@@ -269,27 +380,73 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     gl.clear_color(0.5, 0.7, 0.9, 1.0);
                     gl.clear(glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT);
 
-                    self.world.render_world(gl, pv);
+                    self.world.render_world(gl, pv, self.block_texture);
                 }
 
-                if let(Some(ctx), Some(state), Some(painter)) = (self.egui_context.as_ref(), self.egui_state.as_mut(), self.egui_painter.as_mut()) {
+                if let(Some(context), Some(state), Some(painter)) = (self.egui_context.as_ref(), self.egui_state.as_mut(), self.egui_painter.as_mut()) {
                     let raw_input = state.take_egui_input(window);
-                    ctx.begin_pass(raw_input);
+                    context.begin_pass(raw_input);
 
-                    let painter_layer = ctx.layer_painter(egui::LayerId::new(egui::Order::Foreground, egui::Id::new("crosshair")));
-                    let center = ctx.content_rect().center();
-                    let size = 10.0;
-                    let color = Color32::WHITE;
-                    let stroke = Stroke::new(2.0, color);
+                    let painter_layer = context.layer_painter(egui::LayerId::new(egui::Order::Foreground, egui::Id::new("UI")));
+                    let center = context.content_rect().center();
 
-                    painter_layer.line_segment([center - egui::vec2(size, 0.0), center + egui::vec2(size, 0.0)], stroke);
-                    painter_layer.line_segment([center - egui::vec2(0.0, size), center + egui::vec2(0.0, size)], stroke);
+                    //Crosshair
+                    painter_layer.line_segment([center - egui::vec2(10.0, 0.0), center + egui::vec2(10.0, 0.0)], Stroke::new(2.0, Color32::GRAY));
+                    painter_layer.line_segment([center - egui::vec2(0.0, 10.0), center + egui::vec2(0.0, 10.0)], Stroke::new(2.0, Color32::GRAY));
 
-                    let full_output = ctx.end_pass();
+                    //Hotbar
+                    painter_layer.rect(egui::Rect::from_two_pos(center + egui::vec2(-270.0, center.y - 70.0), center + egui::vec2(270.0, center.y - 10.0)), 2.0, Color32::from_black_alpha(100), Stroke::new(5.0, Color32::GRAY), egui::StrokeKind::Inside);
+
+                    painter_layer.line_segment([center + egui::vec2(-210.0, center.y - 70.0), center + egui::vec2(-210.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
+                    painter_layer.line_segment([center + egui::vec2(-150.0, center.y - 70.0), center + egui::vec2(-150.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
+                    painter_layer.line_segment([center + egui::vec2(-90.0, center.y - 70.0), center + egui::vec2(-90.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
+                    painter_layer.line_segment([center + egui::vec2(-30.0, center.y - 70.0), center + egui::vec2(-30.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
+                    painter_layer.line_segment([center + egui::vec2(30.0, center.y - 70.0), center + egui::vec2(30.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
+                    painter_layer.line_segment([center + egui::vec2(90.0, center.y - 70.0), center + egui::vec2(90.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
+                    painter_layer.line_segment([center + egui::vec2(150.0, center.y - 70.0), center + egui::vec2(150.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
+                    painter_layer.line_segment([center + egui::vec2(210.0, center.y - 70.0), center + egui::vec2(210.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
+
+                    painter_layer.rect(egui::Rect::from_two_pos(center + egui::vec2(-270.0 + (self.selected_hotbar_slot_index as f32 * 60.0), center.y - 70.0), center + egui::vec2(-210.0 + (self.selected_hotbar_slot_index as f32 * 60.0), center.y - 10.0)), 2.0, Color32::TRANSPARENT, Stroke::new(5.0, Color32::WHITE), egui::StrokeKind::Inside);
+
+                    const ATLAS_STEP: f64 = 1.0 / 16.0;
+
+                    for i in 0..3 {
+                        let x_offset = -270.0 + (i as f32 * 60.0) + 7.5;
+                        let y_offset = center.y - 62.5;
+                        let rect = egui::Rect::from_min_size(
+                            center + egui::vec2(x_offset, y_offset),
+                            egui::vec2(45.0, 45.0)
+                        );
+
+                        let uv = egui::Rect::from_min_max(
+                            egui::pos2(i as f32 * ATLAS_STEP as f32, 0.0),
+                            egui::pos2((i + 1) as f32 * ATLAS_STEP as f32, ATLAS_STEP as f32)
+                        );
+
+                        painter_layer.image(self.egui_block_atlas_id.unwrap(), rect, uv, Color32::WHITE);
+                    }
+
+                    for i in 0..self.player.get_health() {
+                        let x_offset = -270.0 + (i as f32 * 30.0);
+                        let y_offset = center.y - 120.0;
+                        let rect = egui::Rect::from_min_size(
+                            center + egui::vec2(x_offset, y_offset),
+                            egui::vec2(45.0, 45.0)
+                        );
+
+                        let uv = egui::Rect::from_min_max(
+                            egui::pos2(0.0, 0.0),
+                            egui::pos2(0.0625, 0.0625)
+                        );
+
+                        painter_layer.image(self.egui_ui_atlas_id.unwrap(), rect, uv, Color32::WHITE);
+                    }
+
+                    let full_output = context.end_pass();
 
                     state.handle_platform_output(window, full_output.platform_output);
 
-                    let primitives = ctx.tessellate(full_output.shapes, full_output.pixels_per_point);
+                    let primitives = context.tessellate(full_output.shapes, full_output.pixels_per_point);
 
                     painter.paint_and_update_textures([window.inner_size().width, window.inner_size().height], full_output.pixels_per_point, &primitives, &full_output.textures_delta);
 
