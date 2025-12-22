@@ -145,8 +145,8 @@ impl Brickbyte {
             gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MIN_FILTER, glow::NEAREST as i32);
             gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MAG_FILTER, glow::NEAREST as i32);
 
-            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::REPEAT as i32);
-            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_T, glow::REPEAT as i32);
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::CLAMP_TO_EDGE as i32);
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_T, glow::CLAMP_TO_EDGE as i32);
 
             self.block_texture = Some(texture);
             self.egui_block_atlas_id = Some(self.egui_painter.as_mut().unwrap().register_native_texture(texture));
@@ -181,8 +181,8 @@ impl Brickbyte {
             gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MIN_FILTER, glow::NEAREST as i32);
             gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MAG_FILTER, glow::NEAREST as i32);
 
-            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::REPEAT as i32);
-            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_T, glow::REPEAT as i32);
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::CLAMP_TO_EDGE as i32);
+            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_T, glow::CLAMP_TO_EDGE as i32);
 
             self.egui_ui_atlas_id = Some(self.egui_painter.as_mut().unwrap().register_native_texture(texture));
         };
@@ -395,43 +395,41 @@ impl winit::application::ApplicationHandler for Brickbyte {
                     painter_layer.line_segment([center - egui::vec2(0.0, 10.0), center + egui::vec2(0.0, 10.0)], Stroke::new(2.0, Color32::GRAY));
 
                     //Hotbar
-                    painter_layer.rect(egui::Rect::from_two_pos(center + egui::vec2(-270.0, center.y - 70.0), center + egui::vec2(270.0, center.y - 10.0)), 2.0, Color32::from_black_alpha(100), Stroke::new(5.0, Color32::GRAY), egui::StrokeKind::Inside);
+                    const HOTBAR_WIDTH: f32 = 500.0;
+                    const HOTBAR_HEIGHT: f32 = 70.0;
+                    const HOTBAR_POS_HEIGHT: f32 = 10.0;
+                    const HOTBAR_SLOT_WIDTH: f32 = 55.0;
+                    const LINE_THICKNESS: u8 = 5;
 
-                    painter_layer.line_segment([center + egui::vec2(-210.0, center.y - 70.0), center + egui::vec2(-210.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
-                    painter_layer.line_segment([center + egui::vec2(-150.0, center.y - 70.0), center + egui::vec2(-150.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
-                    painter_layer.line_segment([center + egui::vec2(-90.0, center.y - 70.0), center + egui::vec2(-90.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
-                    painter_layer.line_segment([center + egui::vec2(-30.0, center.y - 70.0), center + egui::vec2(-30.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
-                    painter_layer.line_segment([center + egui::vec2(30.0, center.y - 70.0), center + egui::vec2(30.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
-                    painter_layer.line_segment([center + egui::vec2(90.0, center.y - 70.0), center + egui::vec2(90.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
-                    painter_layer.line_segment([center + egui::vec2(150.0, center.y - 70.0), center + egui::vec2(150.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
-                    painter_layer.line_segment([center + egui::vec2(210.0, center.y - 70.0), center + egui::vec2(210.0, center.y - 10.0)], Stroke::new(5.0, Color32::GRAY));
+                    painter_layer.rect(egui::Rect::from_two_pos(center + egui::vec2(-HOTBAR_WIDTH / 2.0, center.y - HOTBAR_HEIGHT), center + egui::vec2(HOTBAR_WIDTH / 2.0, center.y - HOTBAR_POS_HEIGHT)), 2.0, Color32::from_black_alpha(100), Stroke::new(LINE_THICKNESS, Color32::GRAY), egui::StrokeKind::Inside);
 
-                    painter_layer.rect(egui::Rect::from_two_pos(center + egui::vec2(-270.0 + (self.selected_hotbar_slot_index as f32 * 60.0), center.y - 70.0), center + egui::vec2(-210.0 + (self.selected_hotbar_slot_index as f32 * 60.0), center.y - 10.0)), 2.0, Color32::TRANSPARENT, Stroke::new(5.0, Color32::WHITE), egui::StrokeKind::Inside);
+                    for i in 0..8 {
+                        painter_layer.line_segment([center + egui::vec2(-((HOTBAR_WIDTH / 2.0) - (HOTBAR_SLOT_WIDTH + (LINE_THICKNESS/2) as f32)) + (i as f32 * HOTBAR_SLOT_WIDTH), center.y - HOTBAR_HEIGHT), center + egui::vec2(-((HOTBAR_WIDTH / 2.0) - (HOTBAR_SLOT_WIDTH + (LINE_THICKNESS/2) as f32)) + (i as f32 * HOTBAR_SLOT_WIDTH), center.y - HOTBAR_POS_HEIGHT)], Stroke::new(LINE_THICKNESS, Color32::GRAY));
+                    }
 
-                    const ATLAS_STEP: f64 = 1.0 / 16.0;
+                    painter_layer.rect(egui::Rect::from_two_pos(center + egui::vec2(-HOTBAR_WIDTH / 2.0 + (self.selected_hotbar_slot_index as f32 * HOTBAR_SLOT_WIDTH), center.y - HOTBAR_HEIGHT), center + egui::vec2(-((HOTBAR_WIDTH / 2.0) - (HOTBAR_SLOT_WIDTH + LINE_THICKNESS as f32)) + (self.selected_hotbar_slot_index as f32 * HOTBAR_SLOT_WIDTH), center.y - HOTBAR_POS_HEIGHT)), 2.0, Color32::TRANSPARENT, Stroke::new(LINE_THICKNESS, Color32::WHITE), egui::StrokeKind::Inside);
 
-                    for i in 0..3 {
-                        let x_offset = -270.0 + (i as f32 * 60.0) + 7.5;
-                        let y_offset = center.y - 62.5;
-                        let rect = egui::Rect::from_min_size(
-                            center + egui::vec2(x_offset, y_offset),
-                            egui::vec2(45.0, 45.0)
+                    const TEX_SIZE: f64 = 256.0;
+                    const PIXEL_MARGIN: f64 = 0.1 / TEX_SIZE; //Margin is needed because otherwise the textures are not cropped correctly
+
+                    for i in 0..5 {
+                        let rect = egui::Rect::from_two_pos(
+                            center + egui::vec2(-245.0 + (i as f32 * 55.0), center.y - 65.0),
+                            center + egui::vec2(-195.0 + (i as f32 * 55.0), center.y - 15.0)
                         );
 
                         let uv = egui::Rect::from_min_max(
-                            egui::pos2(i as f32 * ATLAS_STEP as f32, 0.0),
-                            egui::pos2((i + 1) as f32 * ATLAS_STEP as f32, ATLAS_STEP as f32)
+                            egui::pos2((i as f32 * 16.0 + 0.1) / TEX_SIZE as f32, 0.0 + PIXEL_MARGIN as f32),
+                            egui::pos2(((i + 1) as f32 * 16.0 - 0.1) / TEX_SIZE as f32, 0.0625 - PIXEL_MARGIN as f32)
                         );
 
                         painter_layer.image(self.egui_block_atlas_id.unwrap(), rect, uv, Color32::WHITE);
                     }
 
                     for i in 0..self.player.get_health() {
-                        let x_offset = -270.0 + (i as f32 * 30.0);
-                        let y_offset = center.y - 120.0;
-                        let rect = egui::Rect::from_min_size(
-                            center + egui::vec2(x_offset, y_offset),
-                            egui::vec2(45.0, 45.0)
+                        let rect = egui::Rect::from_two_pos(
+                            center + egui::vec2(-255.0 + (i as f32 * 35.0), center.y - 115.0),
+                            center + egui::vec2(-205.0 + (i as f32 * 35.0), center.y - 65.0)
                         );
 
                         let uv = egui::Rect::from_min_max(

@@ -12,6 +12,10 @@ I welcome all contributions!
 
 Feel free to open an issue, suggest a feature, or submit a pull request.
 
+Before you start coding with the intention of making a pull request, please read the [CONTRIBUTING.md](https://gitlab.com/Stoniye/brickbyte/-/blob/main/CONTRIBUTING.md).
+
+I also plan to write a Documentation about this project as it grows to make it easier to contribute.
+
 ### Getting Started
 
 1. Clone this repository to your local machine
