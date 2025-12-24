@@ -44,7 +44,7 @@ impl GameState {
         let (block_texture, egui_block_atlas_is, egui_ui_atlas_id) = Self::load_textures(&gl, &mut egui_painter);
 
         let mut gamestate: GameState = Self {
-            world: World::new(&gl),
+            world: World::new(),
             gl,
             gl_surface,
             gl_context,
@@ -92,11 +92,11 @@ impl GameState {
             self.program = Some(program);
         }
 
-        const X_CHUNKS: u8 = 2;
-        const Y_CHUNKS: u8 = 2;
+        const X_CHUNKS: i8 = 1;
+        const Y_CHUNKS: i8 = 1;
 
-        for x in 0..X_CHUNKS {
-            for y in 0..Y_CHUNKS {
+        for x in -X_CHUNKS..X_CHUNKS {
+            for y in -X_CHUNKS..Y_CHUNKS {
                 self.world.insert_chunk(IVec2::new(x as i32, y as i32), self.program.unwrap());
             }
         }
@@ -175,7 +175,7 @@ impl GameState {
     }
 
     pub fn new_frame(&mut self, delta_time: f32) {
-        self.player.update_pos(delta_time, self.keys_pressed.clone(), self.world.get_chunk(self.player.get_pos()))
+        self.player.update_pos(delta_time, self.keys_pressed.clone(), &self.world)
     }
 
     pub fn render(&mut self) {

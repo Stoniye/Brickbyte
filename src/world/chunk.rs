@@ -97,37 +97,37 @@ impl Chunk {
             let texture_coords: [Vec2; 4] = Self::get_texture_coords(block_type);
             
             //Front face
-            if Self::block_is_air(self, IVec3::new(pos.x, pos.y, pos.z + 1)) {
+            if self.block_is_air(IVec3::new(pos.x, pos.y, pos.z + 1)) {
                 Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(0, 0, 1), &mut index, texture_coords);
             }
             
             //Back Face
-            if Self::block_is_air(self, IVec3::new(pos.x, pos.y, pos.z - 1)) {
+            if self.block_is_air(IVec3::new(pos.x, pos.y, pos.z - 1)) {
                 Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(0, 0, -1), &mut index, texture_coords);
             }
             
             //Top Face
-            if Self::block_is_air(self, IVec3::new(pos.x, pos.y + 1, pos.z)) {
+            if self.block_is_air(IVec3::new(pos.x, pos.y + 1, pos.z)) {
                 Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(0, 1, 0), &mut index, texture_coords);
             }
             
             //Bottom Face
-            if Self::block_is_air(self, IVec3::new(pos.x, pos.y - 1, pos.z)) {
+            if self.block_is_air(IVec3::new(pos.x, pos.y - 1, pos.z)) {
                 Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(0, -1, 0), &mut index, texture_coords);
             }
             
             //Left Face
-            if Self::block_is_air(self, IVec3::new(pos.x - 1, pos.y, pos.z)) {
+            if self.block_is_air(IVec3::new(pos.x - 1, pos.y, pos.z)) {
                 Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(-1, 0, 0), &mut index, texture_coords);
             }
             
             //Right Face
-            if Self::block_is_air(self, IVec3::new(pos.x + 1, pos.y, pos.z)) {
+            if self.block_is_air(IVec3::new(pos.x + 1, pos.y, pos.z)) {
                 Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(1, 0, 0), &mut index, texture_coords);
             }
         }
         
-        Self::setup_buffers(self, &gl);
+        self.setup_buffers(&gl);
         
         //TODO: Reload neighbor chunk
     }
@@ -202,7 +202,7 @@ impl Chunk {
             vertices.push(texture_coords[i].x);
             vertices.push(texture_coords[i].y);
         }
-        
+
         indices.push(*index + 0);
         indices.push(*index + 1);
         indices.push(*index + 2);
@@ -258,7 +258,7 @@ impl Chunk {
     }
     
     pub fn get_block(&self, block_pos: IVec3) -> u8 {
-        self.blocks.get(&block_pos).copied().unwrap_or(0)
+        *self.blocks.get(&block_pos).unwrap_or(&0)
     }
     
     pub fn set_block(&mut self, block_pos: IVec3, id: u8) {
@@ -270,6 +270,6 @@ impl Chunk {
     }
     
     pub fn initialize(&mut self) {
-        Self::initialize_blocks(self);
+        self.initialize_blocks();
     }
 }
