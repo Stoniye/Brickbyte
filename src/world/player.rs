@@ -1,4 +1,4 @@
-use crate::world::world::World;
+use crate::world::chunk::Chunk;
 use glam::{IVec3, Vec3};
 use std::collections::HashSet;
 use winit::keyboard::KeyCode;
@@ -33,11 +33,11 @@ impl Player {
         }
     }
 
-    pub fn update_pos(&mut self, delta_time: f32, keys_pressed: HashSet<KeyCode>, world: &World) {
+    pub fn update_pos(&mut self, delta_time: f32, keys_pressed: HashSet<KeyCode>, chunk: &Chunk) {
 
         if delta_time >= 0.3 { return; } // On game begin delta_time can be very big, which leads to weird behavior
 
-        let is_grounded: bool = self.is_block_at(IVec3::new(self.pos.x.floor() as i32, self.pos.y.floor() as i32, self.pos.z.floor() as i32), world);
+        let is_grounded: bool = self.is_block_at(IVec3::new(self.pos.x.floor() as i32, self.pos.y.floor() as i32, self.pos.z.floor() as i32), &chunk);
         let speed: f32 = if keys_pressed.contains(&KeyCode::ShiftLeft) {SPRINT_SPEED} else {SPEED} as f32 * delta_time;
         let camera_right: Vec3 = self.camera_front.cross(Vec3::Y).normalize();
         let camera_horizontal_front: Vec3 = Vec3::new(self.camera_front.x, 0.0, self.camera_front.z).normalize();
@@ -91,7 +91,7 @@ impl Player {
             let block_foot: IVec3 = IVec3::new((self.pos.x + offset).floor() as i32, (self.pos.y + 0.5).floor() as i32, self.pos.z.floor() as i32);
             let block_head: IVec3 = IVec3::new((self.pos.x + offset).floor() as i32, (self.pos.y + 1.5).floor() as i32, self.pos.z.floor() as i32);
 
-            if self.is_block_at(block_head, world) || self.is_block_at(block_foot, world) {
+            if self.is_block_at(block_head, &chunk) || self.is_block_at(block_foot, &chunk) {
                 move_dir.x = 0.0;
             }
         }
@@ -99,7 +99,7 @@ impl Player {
         if self.vertical_velocity > 0.0 {
             let block_head: IVec3 = IVec3::new(self.pos.x.floor() as i32, (self.pos.y + 2.5).floor() as i32, self.pos.z.floor() as i32);
 
-            if self.is_block_at(block_head, world) {
+            if self.is_block_at(block_head, &chunk) {
                 self.vertical_velocity = 0.0;
             }
         }
@@ -115,7 +115,7 @@ impl Player {
             let block_foot: IVec3 = IVec3::new(self.pos.x.floor() as i32, (self.pos.y + 0.5).floor() as i32, (self.pos.z + offset).floor() as i32);
             let block_head: IVec3 = IVec3::new(self.pos.x.floor() as i32, (self.pos.y + 1.5).floor() as i32, (self.pos.z + offset).floor() as i32);
 
-            if self.is_block_at(block_head, world) || self.is_block_at(block_foot, world) {
+            if self.is_block_at(block_head, &chunk) || self.is_block_at(block_foot, &chunk) {
                 move_dir.z = 0.0;
             }
         }
@@ -125,8 +125,8 @@ impl Player {
         self.pos = new_pos;
     }
 
-    fn is_block_at(&self, pos: IVec3, world: &World) -> bool {
-        world.get_block(pos) != 0
+    fn is_block_at(&self, pos: IVec3, chunk: &Chunk) -> bool {
+        chunk.get_block(pos) != 0
     }
 
     pub fn update_rotation(&mut self, delta: (f64, f64)) {

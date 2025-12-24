@@ -1,6 +1,7 @@
 use crate::world::chunk::{Chunk, CHUNK_DIMENSION};
 use glam::{IVec2, IVec3, Mat4, Vec3};
 use std::collections::HashMap;
+use std::sync::Arc;
 use glow::{Context, NativeTexture, Program};
 
 pub struct World {
@@ -13,7 +14,7 @@ pub struct BlockRaycast {
 }
 
 impl World {
-    pub fn new() -> Self {
+    pub fn new(gl: &Arc<Context>) -> Self {
         World {
             chunks: HashMap::new()
         }
@@ -50,6 +51,12 @@ impl World {
         }
         
         0
+    }
+
+    pub fn get_chunk(&self, world_pos: Vec3) -> &Chunk {
+        let chunk_pos = IVec2::new(world_pos.x.div_euclid(CHUNK_DIMENSION as f32) as i32, world_pos.z.div_euclid(CHUNK_DIMENSION as f32) as i32);
+
+        self.chunks.get(&chunk_pos).as_ref().unwrap()
     }
     
     pub fn set_block(&mut self, world_pos: IVec3, id: u8, gl: &Context) {
