@@ -32,5 +32,7 @@ Binaries are generated through GitLab Pipelines to ensure a transparent build pr
 
 # Screenshots
 
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/brickbyte.gif" width="800" alt="brickbyte gif"/>
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/house.webp" width="800" alt="brickbyte house"/>
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/smiley.gif" width="800" alt="brickbyte dirt smiley"/>
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/door.gif" width="800" alt="brickbyte door"/>
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/fall_damage.gif" width="800" alt="brickbyte fall damage"/>
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/house.webp" width="800" alt="brickbyte house"/>

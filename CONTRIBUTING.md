@@ -4,7 +4,7 @@ Everyone is welcome to contribute to **Brickbyte**.
 
 I review pull requests based on my own judgment. There is no fixed formula or checklist that guarantees a merge. If I decide not to merge a pull request, I will **always explain why**, I won’t silently close it.
 
-I will only review pull requests as issues on the main repository on [GitLab](https://gitlab.com/Stoniye/brickbyte).
+I will only review pull requests and issues on the main repository on [GitLab](https://gitlab.com/Stoniye/brickbyte).
 
 That said, there are some **hard requirements**. If these are not met, the pull request will not be merged with a high chance.
 

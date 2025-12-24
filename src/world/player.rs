@@ -1,4 +1,4 @@
-use crate::world::chunk::Chunk;
+use crate::world::chunk::{Chunk, CHUNK_DIMENSION};
 use glam::{IVec3, Vec3};
 use std::collections::HashSet;
 use winit::keyboard::KeyCode;
@@ -97,7 +97,7 @@ impl Player {
         }
 
         if self.vertical_velocity > 0.0 {
-            let block_head: IVec3 = IVec3::new(self.pos.x.floor() as i32, (self.pos.y + 2.5).floor() as i32, self.pos.z.floor() as i32);
+            let block_head: IVec3 = IVec3::new(self.pos.x.floor() as i32, (self.pos.y + (PLAYER_HEIGHT + 0.15)).floor() as i32, self.pos.z.floor() as i32);
 
             if self.is_block_at(block_head, &chunk) {
                 self.vertical_velocity = 0.0;
@@ -125,8 +125,8 @@ impl Player {
         self.pos = new_pos;
     }
 
-    fn is_block_at(&self, pos: IVec3, chunk: &Chunk) -> bool {
-        chunk.get_block(pos) != 0
+    fn is_block_at(&self, world_pos: IVec3, chunk: &Chunk) -> bool {
+        chunk.get_block(IVec3::new(world_pos.x.rem_euclid(CHUNK_DIMENSION as i32), world_pos.y, world_pos.z.rem_euclid(CHUNK_DIMENSION as i32))) != 0
     }
 
     pub fn update_rotation(&mut self, delta: (f64, f64)) {

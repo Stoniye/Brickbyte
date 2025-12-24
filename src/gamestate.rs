@@ -340,7 +340,7 @@ impl GameState {
         }
     }
 
-    pub fn mouse_motion_input(&mut self, delta: (f64, f64), event: DeviceEvent) {
+    pub fn mouse_motion_input(&mut self, _delta: (f64, f64), event: DeviceEvent) {
         if let DeviceEvent::MouseMotion {delta} = event {
             self.player.update_rotation(delta);
         }
