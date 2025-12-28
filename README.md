@@ -1,4 +1,4 @@
-# Brickbyte
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/Brickbyte_Banner.webp" width="100%" alt="brickbyte banner"/>
 
 A **free** and **open-source voxel-based survival game** (Minecraft like), for **Windows** and **Linux**. It would also be compatible with Android, iOS and macOS, but there is no official support (yet?).
 
@@ -40,10 +40,9 @@ Binaries are generated through GitLab Pipelines to ensure a transparent build pr
 
 # Screenshots
 
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/smiley.gif" width="800" alt="brickbyte dirt smiley"/>
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/door.gif" width="800" alt="brickbyte door"/>
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/fall_damage.gif" width="800" alt="brickbyte fall damage"/>
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/house.webp" width="800" alt="brickbyte house"/>
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/smiley.gif" width="300" alt="brickbyte dirt smiley"/>
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/door.gif" width="300" alt="brickbyte door"/>
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/fall_damage.gif" width="300" alt="brickbyte fall damage"/>
 
 # Support me
 
