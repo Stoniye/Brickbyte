@@ -56,6 +56,7 @@ impl World {
         let (chunk_pos, block_pos) = Self::world_to_local(world_pos);
 
         self.chunks.get_mut(&chunk_pos).unwrap().set_block(block_pos, id);
+        self.chunks.get_mut(&chunk_pos).unwrap().calculate_lighting();
         self.chunks.get_mut(&chunk_pos).unwrap().reload_chunk(gl);
     }
     

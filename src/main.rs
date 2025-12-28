@@ -87,6 +87,9 @@ impl winit::application::ApplicationHandler for Brickbyte {
     }
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _window_id: WindowId, event: WindowEvent) {
+
+        self.gamestate.as_mut().unwrap().window_event(&event);
+
         match event {
             WindowEvent::CloseRequested => {
                 event_loop.exit();

@@ -10,7 +10,7 @@ use glam::{IVec2, IVec3, Mat4, Vec3, Vec4};
 use glutin::context::PossiblyCurrentContext;
 use glutin::surface::{GlSurface, Surface, WindowSurface};
 use winit::dpi::PhysicalSize;
-use winit::event::{DeviceEvent, ElementState, MouseButton, MouseScrollDelta};
+use winit::event::{DeviceEvent, ElementState, MouseButton, MouseScrollDelta, WindowEvent};
 use winit::keyboard::KeyCode;
 use winit::window::{CursorGrabMode, Window};
 use worldgen::noise::perlin::PerlinNoise;
@@ -23,6 +23,12 @@ const VERTEX_SHADER: &str = include_str!("shader/vertex.glsl");
 const FRAGMENT_SHADER: &str = include_str!("shader/fragment.glsl");
 const BLOCK_ATLAS: &[u8] = include_bytes!("../res/atlas/block_atlas.raw");
 const UI_ATLAS: &[u8] = include_bytes!("../res/atlas/ui_atlas.raw");
+
+#[derive(PartialEq)]
+enum Scene {
+    Menu,
+    Game
+}
 
 pub struct GameState {
     world: World,
@@ -39,7 +45,8 @@ pub struct GameState {
     egui_state: State,
     egui_ui_atlas_id: TextureId,
     egui_block_atlas_id: TextureId,
-    program: Option<Program>
+    program: Option<Program>,
+    active_scene: Scene
 }
 
 impl GameState {
@@ -61,10 +68,12 @@ impl GameState {
             egui_state,
             egui_ui_atlas_id,
             egui_block_atlas_id: egui_block_atlas_is,
-            program: None
+            program: None,
+            active_scene: Scene::Menu
         };
 
         gamestate.init_shader_and_buffers();
+        gamestate.generate_world();
 
         gamestate
     }
@@ -94,7 +103,9 @@ impl GameState {
             self.gl.delete_shader(fragment_shader);
             self.program = Some(program);
         }
+    }
 
+    pub fn generate_world(&mut self) {
         let nm = NoiseMap::new(PerlinNoise::new()).set_seed(Seed::of("12345678910")).set_size(Size::of(CHUNK_DIMENSION as i64, CHUNK_DIMENSION as i64)).set_step(Step::of(0.0005, 0.0005));
 
         const X_CHUNKS: i8 = 2;
@@ -183,6 +194,48 @@ impl GameState {
     }
 
     pub fn render(&mut self) {
+        match self.active_scene {
+            Scene::Menu => {
+                self.render_menu();
+            }
+
+            Scene::Game => {
+                self.render_game();
+            }
+        }
+    }
+
+    fn render_menu(&mut self) {
+        let raw_input = self.egui_state.take_egui_input(&self.window);
+
+        let full_output = self.egui_context.run(raw_input, |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                ui.vertical_centered(|ui| {
+                    ui.add_space(ui.available_height() / 2.0 - 25.0);
+
+                    if ui.add_sized([200.0, 50.0], egui::Button::new("Start")).clicked() {
+                        self.window.set_cursor_grab(CursorGrabMode::Confined).expect("Failed to grab cursor");
+                        self.window.set_cursor_visible(false);
+                        self.active_scene = Scene::Game;
+                    }
+                });
+            });
+        });
+
+        self.egui_state.handle_platform_output(&self.window, full_output.platform_output);
+
+        let primitives = self.egui_context.tessellate(full_output.shapes, full_output.pixels_per_point);
+
+        self.egui_painter.paint_and_update_textures([self.window.inner_size().width, self.window.inner_size().height], full_output.pixels_per_point, &primitives, &full_output.textures_delta);
+
+        for (id, image_delta) in full_output.textures_delta.set {
+            self.egui_painter.set_texture(id, &image_delta);
+        }
+
+        self.gl_surface.swap_buffers(&self.gl_context).expect("Unable to swap buffers");
+    }
+
+    fn render_game(&mut self) {
         let projection = Mat4::perspective_rh_gl(POV.to_radians(), self.window.inner_size().width as f32 / self.window.inner_size().height as f32, 0.1, 100.0);
         let view = Mat4::look_at_rh(self.player.get_head_pos(), self.player.get_head_pos() + self.player.get_camera_front(), Vec3::Y);
         let pv = projection * view;
@@ -274,18 +327,24 @@ impl GameState {
         unsafe {self.gl.viewport(0, 0, size.width as i32, size.height as i32);}
     }
 
+    pub fn window_event(&mut self, event: &WindowEvent) {
+        let _ = self.egui_state.on_window_event(&self.window, &event);
+    }
+
     pub fn focused(&self, focused: bool) {
-        if focused{
-            if let Err(_e) = self.window.set_cursor_grab(CursorGrabMode::Confined) {
-                //Retry because on X11 grabbing cursor is blocked while tabbing back in
-                std::thread::sleep(std::time::Duration::from_millis(100));
-                self.window.set_cursor_grab(CursorGrabMode::Confined).expect("Failed to grab cursor");
+        if self.active_scene == Scene::Game {
+            if focused{
+                if let Err(_e) = self.window.set_cursor_grab(CursorGrabMode::Confined) {
+                    //Retry because on X11 grabbing cursor is blocked while tabbing back in
+                    std::thread::sleep(std::time::Duration::from_millis(100));
+                    self.window.set_cursor_grab(CursorGrabMode::Confined).expect("Failed to grab cursor");
+                }
+                self.window.set_cursor_visible(false);
             }
-            self.window.set_cursor_visible(false);
-        }
-        else if !focused{
-            self.window.set_cursor_grab(CursorGrabMode::None).expect("Failed to release cursor");
-            self.window.set_cursor_visible(true);
+            else if !focused{
+                self.window.set_cursor_grab(CursorGrabMode::None).expect("Failed to release cursor");
+                self.window.set_cursor_visible(true);
+            }
         }
     }
 
