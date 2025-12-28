@@ -1,13 +1,12 @@
 use glam::{IVec2, IVec3, Mat4, Vec2, Vec3};
 use glow::{Context, HasContext, NativeBuffer, NativeTexture, NativeVertexArray, Program};
 use rand::Rng;
-use std::collections::HashMap;
 
 pub const CHUNK_DIMENSION: u8 = 16;
-pub const CHUNK_HEIGHT: u8 = 100;
+pub const CHUNK_HEIGHT: u8 = 208;
 
 pub struct Chunk {
-    blocks: HashMap<IVec3, u8>,
+    blocks: Vec<u8>,
     position: IVec2,
     shader: Program,
     vertices: Option<Vec<f32>>,
@@ -18,9 +17,9 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    pub fn new(position: IVec2, shader: Program) -> Self {
+    pub fn new(position: IVec2, shader: Program, noise_map: Vec<Vec<f64>>) -> Self {
         let mut chunk: Chunk = Chunk{
-            blocks: HashMap::new(),
+            blocks: vec![0; (CHUNK_DIMENSION as usize) * (CHUNK_HEIGHT as usize) * (CHUNK_DIMENSION as usize)],
             position,
             shader,
             vertices: None,
@@ -29,24 +28,23 @@ impl Chunk {
             vertex_buffer_object: None,
             element_buffer_object: None
         };
-        chunk.initialize();
+        chunk.initialize_blocks(noise_map);
         
         chunk
     }
     
-    fn initialize_blocks(&mut self) {
+    fn initialize_blocks(&mut self, noise_map: Vec<Vec<f64>>) {
         for x in 0..CHUNK_DIMENSION {
             for y in 0..CHUNK_HEIGHT {
                 for z in 0..CHUNK_DIMENSION {
-                    let stone_y: u8 = rand::rng().random_range(12..15);
+                    let y_map: f64 = 50.0 + (noise_map[z as usize][x as usize] * 100.0); // 50 <= y_map <= 150
+                    let stone_y: f64 = rand::rng().random_range(3..6) as f64;
 
-                    if y == 0 {
-                        self.set_block(IVec3::new(x as i32, y as i32, z as i32), 5);
-                    } else if y <= stone_y {
+                    if y as f64 <= (y_map - stone_y) {
                         self.set_block(IVec3::new(x as i32, y as i32, z as i32), 3);
-                    } else if y <= 15 {
+                    } else if y as f64 <= (y_map - 1.0) {
                         self.set_block(IVec3::new(x as i32, y as i32, z as i32), 2);
-                    } else if y <= 16 {
+                    } else if y as f64 <= y_map {
                         self.set_block(IVec3::new(x as i32, y as i32, z as i32), 1);
                     }
                 }
@@ -72,8 +70,6 @@ impl Chunk {
     }
     
     pub fn reload_chunk(&mut self, gl: &Context){
-        //TODO: Only reload changed blocks and not whole chunk
-        
         unsafe {
             if let Some(vao) = self.vertex_array_object {
                 gl.delete_vertex_array(vao);
@@ -88,54 +84,59 @@ impl Chunk {
         
         self.vertices = Some(Vec::new());
         self.indices = Some(Vec::new());
-        
+
         let mut index: i32 = 0;
-        
-        for (pos, block_type) in &self.blocks {
-            if *block_type == 0 { continue; }
-            
-            let texture_coords: [Vec2; 4] = Self::get_texture_coords(block_type);
-            
-            //Front face
-            if self.block_is_air(IVec3::new(pos.x, pos.y, pos.z + 1)) {
-                Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(0, 0, 1), &mut index, texture_coords);
-            }
-            
-            //Back Face
-            if self.block_is_air(IVec3::new(pos.x, pos.y, pos.z - 1)) {
-                Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(0, 0, -1), &mut index, texture_coords);
-            }
-            
-            //Top Face
-            if self.block_is_air(IVec3::new(pos.x, pos.y + 1, pos.z)) {
-                Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(0, 1, 0), &mut index, texture_coords);
-            }
-            
-            //Bottom Face
-            if self.block_is_air(IVec3::new(pos.x, pos.y - 1, pos.z)) {
-                Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(0, -1, 0), &mut index, texture_coords);
-            }
-            
-            //Left Face
-            if self.block_is_air(IVec3::new(pos.x - 1, pos.y, pos.z)) {
-                Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(-1, 0, 0), &mut index, texture_coords);
-            }
-            
-            //Right Face
-            if self.block_is_air(IVec3::new(pos.x + 1, pos.y, pos.z)) {
-                Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), *pos, IVec3::new(1, 0, 0), &mut index, texture_coords);
+
+        for y in 0..CHUNK_HEIGHT as i32 {
+            for z in 0..CHUNK_DIMENSION as i32 {
+                for x in 0..CHUNK_DIMENSION as i32 {
+
+                    let block_pos = IVec3::new(x, y, z);
+                    let block_type = self.get_block(IVec3::new(x, y, z));
+
+                    // Skip air
+                    if block_type == 0 { continue; }
+
+                    let texture_coords = Self::get_texture_coords(&block_type);
+
+                    // Front face (Z + 1)
+                    if self.block_is_air(IVec3::new(x, y, z + 1)) {
+                        Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), block_pos, IVec3::new(0, 0, 1), &mut index, texture_coords);
+                    }
+
+                    // Back Face (Z - 1)
+                    if self.block_is_air(IVec3::new(x, y, z - 1)) {
+                        Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), block_pos, IVec3::new(0, 0, -1), &mut index, texture_coords);
+                    }
+
+                    // Top Face (Y + 1)
+                    if self.block_is_air(IVec3::new(x, y + 1, z)) {
+                        Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), block_pos, IVec3::new(0, 1, 0), &mut index, texture_coords);
+                    }
+
+                    // Bottom Face (Y - 1)
+                    if self.block_is_air(IVec3::new(x, y - 1, z)) {
+                        Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), block_pos, IVec3::new(0, -1, 0), &mut index, texture_coords);
+                    }
+
+                    // Left Face (X - 1)
+                    if self.block_is_air(IVec3::new(x - 1, y, z)) {
+                        Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), block_pos, IVec3::new(-1, 0, 0), &mut index, texture_coords);
+                    }
+
+                    // Right Face (X + 1)
+                    if self.block_is_air(IVec3::new(x + 1, y, z)) {
+                        Self::add_face(self.vertices.as_mut().unwrap(), self.indices.as_mut().unwrap(), block_pos, IVec3::new(1, 0, 0), &mut index, texture_coords);
+                    }
+                }
             }
         }
         
         self.setup_buffers(&gl);
-        
-        //TODO: Reload neighbor chunk
     }
     
     fn block_is_air(&self, pos: IVec3) -> bool {
         self.get_block(pos) == 0
-        
-        //TODO: Check neighbor chunk
     }
     
     fn add_face(vertices: &mut Vec<f32>, indices: &mut Vec<i32>, pos: IVec3, normal: IVec3, index: &mut i32, texture_coords: [Vec2; 4]) {
@@ -256,20 +257,22 @@ impl Chunk {
             gl.bind_vertex_array(None);
         }
     }
-    
-    pub fn get_block(&self, block_pos: IVec3) -> u8 {
-        *self.blocks.get(&block_pos).unwrap_or(&0)
+
+    fn get_block_index(pos: IVec3) -> usize {
+        (pos.x + pos.z * CHUNK_DIMENSION as i32 + pos.y * (CHUNK_DIMENSION as i32 * CHUNK_DIMENSION as i32)) as usize
     }
-    
-    pub fn set_block(&mut self, block_pos: IVec3, id: u8) {
-        if id == 0 {
-            self.blocks.remove(&block_pos);
-        } else {
-            self.blocks.insert(block_pos, id);
+
+    pub fn get_block(&self, pos: IVec3) -> u8 {
+        if pos.x < 0 || pos.x >= CHUNK_DIMENSION as i32 || pos.y < 0 || pos.y >= CHUNK_HEIGHT as i32 || pos.z < 0 || pos.z >= CHUNK_DIMENSION as i32 {
+            return 0;
         }
+
+        self.blocks[Self::get_block_index(pos)]
     }
-    
-    pub fn initialize(&mut self) {
-        self.initialize_blocks();
+
+    pub fn set_block(&mut self, pos: IVec3, id: u8) {
+        if pos.x >= 0 && pos.x < CHUNK_DIMENSION as i32 && pos.y >= 0 && pos.y < CHUNK_HEIGHT as i32 && pos.z >= 0 && pos.z < CHUNK_DIMENSION as i32 {
+            self.blocks[Self::get_block_index(pos)] = id;
+        }
     }
 }

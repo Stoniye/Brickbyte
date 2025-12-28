@@ -13,6 +13,9 @@ use winit::dpi::PhysicalSize;
 use winit::event::{DeviceEvent, ElementState, MouseButton, MouseScrollDelta};
 use winit::keyboard::KeyCode;
 use winit::window::{CursorGrabMode, Window};
+use worldgen::noise::perlin::PerlinNoise;
+use worldgen::noisemap::{NoiseMap, NoiseMapGenerator, NoiseMapGeneratorBase, Seed, Size, Step};
+use crate::world::chunk::CHUNK_DIMENSION;
 
 const POV: f32 = 90.0;
 
@@ -92,12 +95,14 @@ impl GameState {
             self.program = Some(program);
         }
 
-        const X_CHUNKS: i8 = 1;
-        const Y_CHUNKS: i8 = 1;
+        let nm = NoiseMap::new(PerlinNoise::new()).set_seed(Seed::of("12345678910")).set_size(Size::of(CHUNK_DIMENSION as i64, CHUNK_DIMENSION as i64)).set_step(Step::of(0.0005, 0.0005));
+
+        const X_CHUNKS: i8 = 2;
+        const Y_CHUNKS: i8 = 2;
 
         for x in -X_CHUNKS..X_CHUNKS {
             for y in -X_CHUNKS..Y_CHUNKS {
-                self.world.insert_chunk(IVec2::new(x as i32, y as i32), self.program.unwrap());
+                self.world.insert_chunk(IVec2::new(x as i32, y as i32), self.program.unwrap(), nm.generate_chunk(x as i64, y as i64));
             }
         }
 
@@ -168,7 +173,6 @@ impl GameState {
 
             gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::CLAMP_TO_EDGE as i32);
             gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_T, glow::CLAMP_TO_EDGE as i32);
-
 
             return (block_texture, egui_painter.register_native_texture(block_texture), egui_painter.register_native_texture(ui_texture));
         };

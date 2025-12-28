@@ -5,8 +5,8 @@ use winit::keyboard::KeyCode;
 
 const PLAYER_HEIGHT: f32 = 1.8;
 const MOUSE_SENS: f32 = 0.04;
-const GRAVITY: u8 = 13;
-const JUMP_STRENGTH: u8 = 6;
+const GRAVITY: u8 = 23;
+const JUMP_STRENGTH: u8 = 8;
 const SPEED: u8 = 4;
 const SPRINT_SPEED: u8 = 6;
 
@@ -23,7 +23,7 @@ pub struct Player {
 impl Player {
     pub fn new() -> Self {
         Player {
-            pos: Vec3::new(2.0, 17.5, 2.0),
+            pos: Vec3::new(2.0, 125.0, 2.0),
             camera_front: Vec3::new(0.0, 0.0, -1.0),
             yaw: -90.0,
             pitch: 0.0,
@@ -46,7 +46,7 @@ impl Player {
         let mut new_pos: Vec3 = self.pos;
 
         if !self.was_grounded && is_grounded {
-            let damage: f32 = (-self.vertical_velocity * 0.5) - 5.0;
+            let damage: f32 = (-self.vertical_velocity * 0.4) - 5.0;
 
             if damage > 0.0 {
                 self.damage(damage.floor() as u8);
@@ -77,8 +77,6 @@ impl Player {
         if keys_pressed.contains(&KeyCode::KeyD){
             move_dir += speed * camera_right;
         }
-
-        //TODO: The collision detection is a bit buggy and sloppy, needs improvement
 
         if move_dir.x != 0.0 {
 

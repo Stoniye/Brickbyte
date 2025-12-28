@@ -2,7 +2,7 @@
 
 Everyone is welcome to contribute to **Brickbyte**.
 
-I review pull requests based on my own judgment. There is no fixed formula or checklist that guarantees a merge. If I decide not to merge a pull request, I will **always explain why**, I won’t silently close it.
+I review pull requests based on my own judgment. There is no fixed formula or checklist that guarantees a merge. If I decide not to merge a pull request, I will **always explain why**, I won’t silently close it. Of course, you will still be able to improve your PR when i decided to not merge it and i will review it again.
 
 I will only review pull requests and issues on the main repository on [GitLab](https://gitlab.com/Stoniye/brickbyte).
 
@@ -131,6 +131,55 @@ This isn’t super strict, but following this format makes the history easier to
 * `revert:` - Reverting a previous commit
 
 If your commit message doesn’t perfectly match this, that’s fine, it’s just a guideline, not a hard rule.
+
+---
+
+## Legal requirements
+
+By submitting a pull request, you represent and warrant that:
+- Your contribution is your original work or you have the necessary rights to submit it.
+- It does not infringe any third-party copyrights, trademarks, or other intellectual property rights.
+- You grant the project the right to use, modify, and distribute your contribution under the project's license.
+
+---
+
+## What to contribute?
+
+You can check the [Issues tab](https://gitlab.com/Stoniye/brickbyte/-/issues) to see what needs to be done.
+
+Issues are categorized by **difficulty** using the following tags:
+
+* **Difficulty/Byte**: An issue or feature that requires very little work to fix or implement.
+* **Difficulty/Intermediate**: An issue or feature that requires some work and basic knowledge to fix or implement.
+* **Difficulty/Hard**: An issue or feature that requires significant work and solid knowledge to fix or implement.
+* **Difficulty/VeryHard**: An issue or feature that requires a large amount of work and advanced knowledge to fix or implement.
+* **Difficulty/MajorRefactor**: An issue or feature that requires major refactoring to fix or implement.
+
+Issues are also categorized by **priority (importance)** using these tags:
+
+* **Priority/Small**: A very minor issue that occurs very rarely, or only affects a few users, and does not lower gameplay quality.
+* **Priority/Intermediate**: An issue that occurs occasionally, or affects a larger group of users, and may or may not lower gameplay quality.
+* **Priority/Big**: An issue that occurs often, or affects most or all users, and clearly lowers gameplay quality.
+* **Priority/Major**: An issue that has a huge impact on gameplay quality or makes the game partially or completely unplayable.
+
+Additionally, some issues may be marked as:
+
+* **GoodFirstIssue**: Beginner-friendly issues that are well-defined and suitable for new contributors.
+
+---
+
+### New features and suggestions
+
+If you want to implement a **new feature**, you can look at the [vision for Brickbyte](https://gitlab.com/Stoniye/brickbyte#vision) to come up with ideas. You can also browse the following **type tags** in the [Issues tab](https://gitlab.com/Stoniye/brickbyte/-/issues):
+
+* **Type/Mob**: Suggests a new mob
+* **Type/Item**: Suggests a new item
+* **Type/Block**: Suggests a new block
+* **Type/Structure**: Suggests a new structure
+* **Type/Biome**: Suggests a new biome
+* **Type/Gameplay**: Suggests a new gameplay mechanic
+
+> **IMPORTANT:** New features must always follow the **“Fits the game”** requirement described in the [Contributing Guidelines](https://gitlab.com/Stoniye/brickbyte/-/blob/main/CONTRIBUTING.md#1-fits-the-game) in order to be merged into the main branch.
 
 ---
 
