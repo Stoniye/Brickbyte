@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: © 2025 - 2026 Elias Steininger <elias.st4600@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::world::chunk::{Chunk, CHUNK_DIMENSION};
 use glam::{IVec2, IVec3, Mat4, Vec3};
 use glow::{Context, NativeTexture, Program};

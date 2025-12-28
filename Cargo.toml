@@ -3,7 +3,7 @@ name = "Brickbyte"
 version = "0.0.4"
 edition = "2024"
 description = "A 3D Survival Voxel Game with OpenGL in Rust"
-authors = ["Elias Steininger <https://stonie.dev>"]
+authors = ["Elias Steininger <elias.st4600@gmail.com>"]
 license = "GPL-3.0-or-later"
 
 [dependencies]

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: © 2025 - 2026 Elias Steininger <elias.st4600@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use std::collections::VecDeque;
 use glam::{IVec2, IVec3, Mat4, Vec2, Vec3};
 use glow::{Context, HasContext, NativeBuffer, NativeTexture, NativeVertexArray, Program};

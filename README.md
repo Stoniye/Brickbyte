@@ -32,6 +32,10 @@ I also plan to write a Documentation about this project as it grows to make it e
 
 That's it, you're ready to go!
 
+# License
+
+This project is licensed under the GPLv3, see the [LICENSE](https://gitlab.com/Stoniye/brickbyte/-/blob/main/LICENSE) file for details.
+
 # Releases
 
 Stable builds are published regularly in the [releases tab](https://gitlab.com/Stoniye/brickbyte/-/releases).

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: © 2025 - 2026 Elias Steininger <elias.st4600@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::world::world::World;
 use glam::{IVec3, Vec3};
 use std::collections::HashSet;
