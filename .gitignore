@@ -13,3 +13,6 @@ target
 *.sh
 flamegraph.*
 *.data
+
+# useless MacOS shit file
+.DS_Store
