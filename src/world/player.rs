@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 - 2026 Elias Steininger <elias.st4600@gmail.com>
+// SPDX-FileCopyrightText: © 2025 - 2026 Elias Steininger <elias.st4600@gmail.com> and Project Contributors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::world::world::World;
