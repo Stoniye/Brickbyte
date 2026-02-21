@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 - 2026 Elias Steininger <elias.st4600@gmail.com> and Project Contributors  (see CONTRIBUTORS.md)
+// SPDX-FileCopyrightText: © 2025 - 2026 Elias Steininger <elias.st4600@gmail.com> and Project Contributors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use std::collections::HashSet;
@@ -239,7 +239,7 @@ impl GameState {
     }
 
     fn render_game(&mut self) {
-        let projection = Mat4::perspective_rh_gl(POV.to_radians(), self.window.inner_size().width as f32 / self.window.inner_size().height as f32, 0.1, 100.0);
+        let projection = Mat4::perspective_rh_gl(POV.to_radians(), self.window.inner_size().width as f32 / self.window.inner_size().height as f32, 0.1, 200.0);
         let view = Mat4::look_at_rh(self.player.get_head_pos(), self.player.get_head_pos() + self.player.get_camera_front(), Vec3::Y);
         let pv = projection * view;
 

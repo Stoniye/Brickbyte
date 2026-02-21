@@ -183,6 +183,43 @@ If you want to implement a **new feature**, you can look at the [vision for Bric
 
 ---
 
+## License and Attribution
+
+All source files in this repository reference the `CONTRIBUTORS.md` file for licensing and attribution purposes.
+
+### Adding Yourself as a Contributor
+
+If you submit a Pull Request and are not already listed in `CONTRIBUTORS.md`, you are welcome to add yourself as part of the same Pull Request.
+If you choose not to do so, I may ask for your permission to add you later if I notice your contribution is missing from the list.
+
+### CONTRIBUTORS.md Column Guidelines
+
+Please follow these rules when adding or editing an entry:
+
+* **Name**
+  Your legal name. You may leave this field empty if you prefer not to make it public.
+
+* **GitLab**
+  Your GitLab username.
+
+* **Role**
+  Your role in the project. For most contributors, this will be `Contributor`.
+
+* **Custom**
+  Optional free-text field.
+  You may write anything you like **except**:
+
+    * Advertising or promotional content
+    * NSFW content
+    * Hate speech
+    * Links (URLs are not allowed)
+
+  In addition, the content **must be kept short enough to fit on a single line** in the table and **must not wrap onto the next line**, in order to keep the table clean and readable.
+
+Failure to follow these guidelines may result in a request to update or remove the entry.
+
+---
+
 ## Final Notes
 
 Even if your pull request isn’t merged, constructive discussion is always welcome.

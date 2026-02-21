@@ -2,4 +2,6 @@
 
 Thank you to everyone who has contributed to this project!
 
-* **Elias Steininger** (@stoniye) - Owner
+| Name | GitLab | Role | Custom |
+|----------|----------|----------|---------|
+| Elias Steininger | @Stoniye | Owner |  |

@@ -13,3 +13,6 @@ target
 *.sh
 flamegraph.*
 *.data
+
+#MacOS
+.DS_Store

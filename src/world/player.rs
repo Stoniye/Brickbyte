@@ -127,7 +127,7 @@ impl Player {
     }
 
     fn is_block_at(&self, world_pos: IVec3, world: &World) -> bool {
-        world.get_block(world_pos) != 0
+        world.get_global_block(world_pos) != 0
     }
 
     pub fn update_rotation(&mut self, delta: (f64, f64)) {

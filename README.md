@@ -6,6 +6,13 @@ A **free** and **open-source voxel-based survival game** (Minecraft like), for *
 
 I'm just at the beginning of the project, there aren't enough features to list here yet :)
 
+### Screenshots
+
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/smiley.gif" width="300" alt="brickbyte dirt smiley"/>
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/corridor.gif" width="300" alt="brickbyte corridor"/>
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/fall_damage.gif" width="300" alt="brickbyte fall damage"/>
+<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/digging.gif" width="300" alt="brickbyte digging"/>
+
 ### Vision
 
 I love Minecraft, but over time I’ve felt that its core experience is intentionally very grounded and traditional. It focuses heavily on simplicity and realism, which is part of its charm, but it also leaves me wanting more depth and fantasy.
@@ -41,13 +48,6 @@ This project is licensed under the GPLv3, see the [LICENSE](https://gitlab.com/S
 Stable builds are published regularly in the [releases tab](https://gitlab.com/Stoniye/brickbyte/-/releases).
 
 Binaries are generated through GitLab Pipelines to ensure a transparent build process, so you can be confident that each release corresponds exactly to the source code in this repository.
-
-# Screenshots
-
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/smiley.gif" width="300" alt="brickbyte dirt smiley"/>
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/corridor.gif" width="300" alt="brickbyte corridor"/>
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/fall_damage.gif" width="300" alt="brickbyte fall damage"/>
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/digging.gif" width="300" alt="brickbyte digging"/>
 
 # Support me
 
