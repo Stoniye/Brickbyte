@@ -1,20 +1,29 @@
 [package]
 name = "Brickbyte"
-version = "0.0.4"
+version = "0.0.5"
 edition = "2024"
 description = "A 3D Survival Voxel Game with OpenGL in Rust"
-authors = ["Elias Steininger <elias.st4600@gmail.com>"]
+authors = ["Elias Steininger <elias.st4600@gmail.com>", "Project Contributors (see https://gitlab.com/Stoniye/brickbyte/-/blob/main/CONTRIBUTORS.md)"]
 license = "GPL-3.0-or-later"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+debug = false
+incremental = false
 
 [dependencies]
 winit = "0.30.12"
 glutin = "0.32.3"
-glow = "0.16.0"
-egui = "0.33.3"
-egui-winit = "0.33.3"
-egui_glow = "0.33.3"
-glam = "0.30.9"
-rand = "0.9.2"
+glow = "0.17.0"
+egui = "0.34.1"
+egui-winit = "0.34.1"
+egui_glow = "0.34.1"
+glam = "0.32.1"
+rand = "0.10.1"
 worldgen = "0.5.3"
 
 [dev-dependencies]

@@ -211,12 +211,16 @@ impl GameState {
     fn render_menu(&mut self) {
         let raw_input = self.egui_state.take_egui_input(&self.window);
 
-        let full_output = self.egui_context.run(raw_input, |ctx| {
+        let full_output = self.egui_context.run_ui(raw_input, |ctx| {
             egui::CentralPanel::default().show(ctx, |ui| {
                 ui.vertical_centered(|ui| {
-                    ui.add_space(ui.available_height() / 2.0 - 25.0);
+                    ui.add_space(ui.available_height() * 0.1);
 
-                    if ui.add_sized([200.0, 50.0], egui::Button::new("Start")).clicked() {
+                    ui.heading(egui::RichText::new("Brickbyte").size(100.0).strong().color(Color32::from_rgb(255, 255, 255)));
+
+                    ui.add_space(250.0);
+
+                    if ui.add_sized([250.0, 60.0], egui::Button::new(egui::RichText::new("Start").size(24.0))).clicked() {
                         self.window.set_cursor_grab(CursorGrabMode::Confined).expect("Failed to grab cursor");
                         self.window.set_cursor_visible(false);
                         self.active_scene = Scene::Game;

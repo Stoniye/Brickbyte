@@ -4,8 +4,8 @@
 use crate::world::chunk::{Chunk, CHUNK_DIMENSION, CHUNK_HEIGHT};
 use glam::{IVec2, IVec3, Mat4, Vec2, Vec3};
 use glow::{Context, HasContext, NativeTexture, Program};
+use rand::RngExt;
 use std::collections::{HashMap, VecDeque};
-use rand::Rng;
 
 pub struct World {
     chunks: HashMap<IVec2, Chunk>,
