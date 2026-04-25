@@ -1,17 +1,19 @@
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/Brickbyte_Banner.webp" width="100%" alt="brickbyte banner"/>
+<img src="res/Brickbyte_Banner.webp" width="100%" alt="brickbyte banner"/>
 
 A **free** and **open-source voxel-based survival game** (Minecraft like), for **Windows** and **Linux**. It would also be compatible with Android, iOS and macOS, but there is no official support (yet?).
 
 ### Features
 
-I'm just at the beginning of the project, there aren't enough features to list here yet :)
+* Basic world generation using perlin noise
+* Player movement and collision
+* Shadow and Global Illumination
 
 ### Screenshots
 
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/smiley.gif" width="300" alt="brickbyte dirt smiley"/>
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/corridor.gif" width="300" alt="brickbyte corridor"/>
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/fall_damage.gif" width="300" alt="brickbyte fall damage"/>
-<img src="https://gitlab.com/Stoniye/brickbyte/-/raw/main/res/digging.gif" width="300" alt="brickbyte digging"/>
+<img src="res/smiley.gif" width="300" alt="brickbyte dirt smiley"/>
+<img src="res/corridor.gif" width="300" alt="brickbyte corridor"/>
+<img src="res/fall_damage.gif" width="300" alt="brickbyte fall damage"/>
+<img src="res/digging.gif" width="300" alt="brickbyte digging"/>
 
 ### Vision
 
@@ -27,7 +29,7 @@ I welcome all contributions!
 
 Feel free to open an issue, suggest a feature, or submit a pull request.
 
-Before you start coding with the intention of making a pull request, please read the [contributing guidelines](https://gitlab.com/Stoniye/brickbyte/-/blob/main/CONTRIBUTING.md).
+Before you start coding with the intention of making a pull request, please read the [contributing guidelines](CONTRIBUTING.md).
 
 I also plan to write a Documentation about this project as it grows to make it easier to contribute.
 
@@ -41,7 +43,7 @@ That's it, you're ready to go!
 
 # License
 
-This project is licensed under the GPLv3, see the [LICENSE](https://gitlab.com/Stoniye/brickbyte/-/blob/main/LICENSE) file for details.
+This project is licensed under the GPLv3, see the [LICENSE](LICENSE) file for details.
 
 # Releases
 
@@ -55,4 +57,4 @@ Binaries are generated through GitLab Pipelines to ensure a transparent build pr
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="172.25">
 </a>
 
-[![Bitcoin](https://img.shields.io/badge/Donate-Bitcoin-orange?style=for-the-badge&logo=bitcoin&logoColor=white)](bitcoin:1JHLioDbAJoNXVmWUyUf2mgyG2WhHzQcuN)
+[![Bitcoin](https://img.shields.io/badge/Donate-Bitcoin-orange?style=for-the-badge&logo=bitcoin&logoColor=white)](bitcoin:1DwLpLZ4X3oT9oZoJVKpyiP9fDHW9tkhZc)

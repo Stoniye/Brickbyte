@@ -61,7 +61,7 @@ My goal is to implement as much as possible myself (ideally even avoiding things
 * New dependencies are only acceptable if they are **absolutely necessary**
 * The functionality would otherwise require a massive amount of work to implement from scratch
 
-I dislike dependencies for the same reasons mentioned under *[Not Bloated or Unoptimized](https://gitlab.com/Stoniye/brickbyte/-/blob/main/CONTRIBUTING.md#2-not-bloated-or-unoptimized)*: loss of control and unnecessary complexity.
+I dislike dependencies for the same reasons mentioned under *[Not Bloated or Unoptimized](#2-not-bloated-or-unoptimized)*: loss of control and unnecessary complexity.
 
 ---
 
@@ -137,6 +137,7 @@ If your commit message doesn’t perfectly match this, that’s fine, it’s jus
 ## Legal requirements
 
 By submitting a pull request, you represent and warrant that:
+
 - Your contribution is your original work or you have the necessary rights to submit it.
 - It does not infringe any third-party copyrights, trademarks, or other intellectual property rights.
 - You grant the project the right to use, modify, and distribute your contribution under the project's license.
@@ -145,7 +146,7 @@ By submitting a pull request, you represent and warrant that:
 
 ## What to contribute?
 
-You can check the [Issues tab](https://gitlab.com/Stoniye/brickbyte/-/issues) to see what needs to be done.
+You can check the [Issues tab](https://gitlab.com/Stoniye/brickbyte/-/work_items?state=opened&type%5B%5D=ISSUE) to see what needs to be done.
 
 Issues are categorized by **difficulty** using the following tags:
 
@@ -170,7 +171,7 @@ Additionally, some issues may be marked as:
 
 ### New features and suggestions
 
-If you want to implement a **new feature**, you can look at the [vision for Brickbyte](https://gitlab.com/Stoniye/brickbyte#vision) to come up with ideas. You can also browse the following **type tags** in the [Issues tab](https://gitlab.com/Stoniye/brickbyte/-/issues):
+If you want to implement a **new feature**, you can look at the [vision for Brickbyte](https://gitlab.com/Stoniye/brickbyte#vision) to come up with ideas. You can also browse the following **type tags** in the [Issues tab](https://gitlab.com/Stoniye/brickbyte/-/work_items?state=opened&type%5B%5D=ISSUE):
 
 * **Type/Mob**: Suggests a new mob
 * **Type/Item**: Suggests a new item
@@ -179,7 +180,7 @@ If you want to implement a **new feature**, you can look at the [vision for Bric
 * **Type/Biome**: Suggests a new biome
 * **Type/Gameplay**: Suggests a new gameplay mechanic
 
-> **IMPORTANT:** New features must always follow the **“Fits the game”** requirement described in the [Contributing Guidelines](https://gitlab.com/Stoniye/brickbyte/-/blob/main/CONTRIBUTING.md#1-fits-the-game) in order to be merged into the main branch.
+> **IMPORTANT:** New features must always follow the **“Fits the game”** requirement described in the [Contributing Guidelines](#1-fits-the-game) in order to be merged into the main branch.
 
 ---
 
@@ -208,12 +209,12 @@ Please follow these rules when adding or editing an entry:
 * **Custom**
   Optional free-text field.
   You may write anything you like **except**:
-
-    * Advertising or promotional content
-    * NSFW content
-    * Hate speech
-    * Links (URLs are not allowed)
-
+  
+  * Advertising or promotional content
+  * NSFW content
+  * Hate speech
+  * Links (URLs are not allowed)
+  
   In addition, the content **must be kept short enough to fit on a single line** in the table and **must not wrap onto the next line**, in order to keep the table clean and readable.
 
 Failure to follow these guidelines may result in a request to update or remove the entry.
